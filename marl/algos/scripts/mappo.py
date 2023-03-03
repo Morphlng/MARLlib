@@ -25,23 +25,58 @@ def run_mappo(config_dict, common_config, env_dict, stop):
     while sgd_minibatch_size < episode_limit:
         sgd_minibatch_size *= 2
 
+    # Fixed parameters
     batch_mode = _param["batch_mode"]
-    lr = _param["lr"]
-    clip_param = _param["clip_param"]
-    vf_clip_param = _param["vf_clip_param"]
     use_gae = _param["use_gae"]
-    gae_lambda = _param["lambda"]
-    kl_coeff = _param["kl_coeff"]
     num_sgd_iter = _param["num_sgd_iter"]
-    vf_loss_coeff = _param["vf_loss_coeff"]
-    entropy_coeff = _param["entropy_coeff"]
+    lr_schedule = _param.get("lr_schedule", None)
+    entropy_coeff_schedule = _param.get("entropy_coeff_schedule", None)
+
+    # Tunable parameters
+    tuning = False
+    lr = _param.get("lr", None)
+    if lr is None:
+        lr = tune.loguniform(1e-4, 1e-2)
+        tuning = True
+
+    clip_param = _param.get("clip_param", None)
+    if clip_param is None:
+        clip_param = tune.uniform(0.1, 0.5)
+        tuning = True
+
+    vf_clip_param = _param.get("vf_clip_param", None)
+    if vf_clip_param is None:
+        vf_clip_param = tune.uniform(10.0, 20.0)
+        tuning = True
+
+    gae_lambda = _param.get("lambda", None)
+    if gae_lambda is None:
+        gae_lambda = tune.uniform(0.95, 1.0)
+        tuning = True
+
+    kl_coeff = _param.get("kl_coeff", None)
+    if kl_coeff is None:
+        kl_coeff = tune.uniform(0.2, 0.5)
+        tuning = True
+
+    vf_loss_coeff = _param.get("vf_loss_coeff", None)
+    if vf_loss_coeff is None:
+        vf_loss_coeff = tune.uniform(0.5, 1.0)
+        tuning = True
+
+    entropy_coeff = _param.get("entropy_coeff", None)
+    if entropy_coeff is None:
+        entropy_coeff = tune.uniform(1e-3, 5e-2)
+        tuning = True
 
     config = {
         "batch_mode": batch_mode,
         "train_batch_size": train_batch_size,
         "sgd_minibatch_size": sgd_minibatch_size,
         "lr": lr,
+        "lr_scedule": lr_schedule,
         "entropy_coeff": entropy_coeff,
+        "entropy_coeff_schedule": entropy_coeff_schedule,
         "num_sgd_iter": num_sgd_iter,
         "clip_param": clip_param,
         "use_gae": use_gae,
@@ -59,14 +94,27 @@ def run_mappo(config_dict, common_config, env_dict, stop):
     algorithm = config_dict["algorithm"]
     map_name = config_dict["env_args"]["map_name"]
     arch = config_dict["model_arch_args"]["core_arch"]
-    RUNNING_NAME = '_'.join([algorithm, arch, map_name])
+    RUNNING_NAME = '_'.join(
+        [algorithm, arch, map_name, "tune" if tuning else "train"])
 
     results = tune.run(MAPPOTrainer,
                        name=RUNNING_NAME,
                        stop=stop,
                        config=config,
+                       num_samples=_param.get("num_samples", 1),
                        verbose=1,
                        progress_reporter=CLIReporter(),
-                       local_dir=available_local_dir)
+                       local_dir=available_local_dir,
+                       checkpoint_freq=_param.get("checkpoint_freq", 100),
+                       checkpoint_at_end=True,
+                       resume=_param.get("resume", False)
+                       )
+
+    if tuning:
+        best_trial = results.get_best_trial(
+            "episode_reward_mean", "max", "last")
+        print("Best trial config: {}".format(best_trial.config))
+        print("Best trial final validation reward: {}".format(
+            best_trial.last_result["episode_reward_mean"]))
 
     return results

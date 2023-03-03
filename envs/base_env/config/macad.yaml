@@ -1,0 +1,92 @@
+env: macad
+
+env_args:
+  map_name: "custom" # | "default" | "custom" | "HomoNcomIndePOIntrxMASS3CTWN3" | "HeteNcomIndePOIntrxMATLS1B2C1PTWN3"
+  # Only when map_name set to "custom" will read below configurations
+  actors:
+    car1:
+      auto_control: false
+      camera_type: rgb
+      collision_sensor: 'on'
+      convert_images_to_video: false
+      early_terminate_on_collision: true
+      enable_planner: true
+      lane_sensor: 'on'
+      log_images: false
+      log_measurements: false
+      manual_control: false
+      render: false
+      reward_function: corl2017
+      scenarios: SSUI3C_TOWN3_CAR1
+      send_measurements: false
+      type: vehicle_4W
+      use_depth_camera: false
+      x_res: 168
+      y_res: 168
+    car2:
+      auto_control: false
+      camera_type: rgb
+      collision_sensor: 'on'
+      convert_images_to_video: false
+      early_terminate_on_collision: true
+      enable_planner: true
+      lane_sensor: 'on'
+      log_images: false
+      log_measurements: false
+      manual_control: false
+      render: false
+      reward_function: corl2017
+      scenarios: SSUI3C_TOWN3_CAR3
+      send_measurements: false
+      type: vehicle_4W
+      use_depth_camera: false
+      x_res: 168
+      y_res: 168
+  env:
+    discrete_actions: true
+    enable_planner: true
+    fixed_delta_seconds: 0.05
+    framestack: 1
+    render: true
+    render_x_res: 800
+    render_y_res: 600
+    send_measurements: false
+    server_map: /Game/Carla/Maps/Town03
+    spectator_loc:
+    - 140
+    - 68
+    - 9
+    squash_action_logits: false
+    sync_server: true
+    use_depth_camera: false
+    verbose: false
+    x_res: 168
+    y_res: 168
+  scenarios:
+    actors:
+      car1:
+        end:
+        - 144
+        - 59
+        - 0
+        start:
+        - 170.5
+        - 80
+        - 0.4
+      car2:
+        end:
+        - 191.2
+        - 62.7
+        - 0
+        start:
+        - 147.6
+        - 62.6
+        - 0.4
+    map: Town03
+    max_steps: 500
+    weather_distribution:
+    - 0
+
+mask_flag: False
+global_state_flag: False
+opp_action_in_cc: False
