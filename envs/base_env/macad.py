@@ -82,10 +82,9 @@ class RllibMacad(MultiAgentEnv):
     def step(self, action_dict):
         alive_actors = list(action_dict.keys())
 
-        if len(alive_actors) < self.num_agents:
-            for actor_id in self.env_config["actors"].keys():
-                if actor_id not in alive_actors:
-                    action_dict[actor_id] = 4  # brake
+        for actor_id in self.env_config["actors"].keys():
+            if actor_id not in alive_actors:
+                action_dict[actor_id] = 4  # brake
 
         origin_obs, r, d, i = self.env.step(action_dict)
 

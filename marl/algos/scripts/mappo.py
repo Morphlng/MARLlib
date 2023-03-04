@@ -1,6 +1,7 @@
 from ray import tune
 from ray.tune.utils import merge_dicts
 from ray.tune import CLIReporter
+from ray.tune.schedulers import AsyncHyperBandScheduler
 from marl.algos.core.CC.mappo import MAPPOTrainer
 from marl.algos.utils.log_dir_util import available_local_dir
 from marl.algos.utils.setup_utils import AlgVar
@@ -74,7 +75,7 @@ def run_mappo(config_dict, common_config, env_dict, stop):
         "train_batch_size": train_batch_size,
         "sgd_minibatch_size": sgd_minibatch_size,
         "lr": lr,
-        "lr_scedule": lr_schedule,
+        "lr_schedule": lr_schedule,
         "entropy_coeff": entropy_coeff,
         "entropy_coeff_schedule": entropy_coeff_schedule,
         "num_sgd_iter": num_sgd_iter,
@@ -101,10 +102,15 @@ def run_mappo(config_dict, common_config, env_dict, stop):
                        name=RUNNING_NAME,
                        stop=stop,
                        config=config,
+                       scheduler=AsyncHyperBandScheduler(
+                           metric="episode_reward_mean", mode="max",
+                           max_t=30, grace_period=3,
+                           reduction_factor=2) if tuning else None,
                        num_samples=_param.get("num_samples", 1),
                        verbose=1,
                        progress_reporter=CLIReporter(),
                        local_dir=available_local_dir,
+                       log_to_file=True,
                        checkpoint_freq=_param.get("checkpoint_freq", 100),
                        checkpoint_at_end=True,
                        resume=_param.get("resume", False)
