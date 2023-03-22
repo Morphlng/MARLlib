@@ -19,11 +19,13 @@ env_args:
       log_measurements: false
       manual_control: false
       render: false
-      reward_function: corl2017
+      reward_function: custom
       scenarios: SSUI3C_TOWN3_CAR1
       send_measurements: true
       type: vehicle_4W
       use_depth_camera: false
+      initial_speed: 20 # km/h
+      target_speed: 20  # km/h
     car2:
       auto_control: false
       camera_type: semseg
@@ -36,11 +38,13 @@ env_args:
       log_measurements: false
       manual_control: false
       render: false
-      reward_function: corl2017
+      reward_function: custom
       scenarios: SSUI3C_TOWN3_CAR3
       send_measurements: true
       type: vehicle_4W
       use_depth_camera: false
+      initial_speed: 20 # km/h
+      target_speed: 20  # km/h
   env:
     discrete_actions: true
     enable_planner: true
@@ -51,6 +55,9 @@ env_args:
     render_y_res: 600
     send_measurements: true
     server_map: /Game/Carla/Maps/Town03
+    # Set these two to connect to existing Carla Server
+    # server_ip: localhost
+    # server_port: 2000
     spectator_loc:
     - 140
     - 68

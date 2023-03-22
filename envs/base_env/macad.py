@@ -36,10 +36,10 @@ class RllibMacad(MultiAgentEnv):
         env_class = env_name_mapping[map_name]
         if map_name != "custom":
             self.env = env_class()
-            self.env_config = self.env.configs
+            self.env_config = self.env.configs.copy()
         else:
             self.env = env_class(env_config)
-            self.env_config = env_config
+            self.env_config = env_config.copy()
 
         if self.use_only_semantic:
             assert self.env_config["env"]["send_measurements"], "use_only_semantic can only be True when send_measurement is True"
@@ -81,8 +81,19 @@ class RllibMacad(MultiAgentEnv):
         # represent single agent's action and observation space
         self.action_space = self.env.action_space[actor_id]
 
+    def _hard_reset(self):
+        """If normal reset raise an exception, try hard reset first"""
+        self.env.close()
+        self.env = MultiCarlaEnv(self.env_config)
+        return self.env.reset()
+
     def reset(self):
-        origin_obs = self.env.reset()
+
+        try:
+            origin_obs = self.env.reset()
+        except Exception as e:
+            print("Reset failed, try hard reset")
+            origin_obs = self._hard_reset()
 
         obs = {}
         for actor_id in origin_obs.keys():

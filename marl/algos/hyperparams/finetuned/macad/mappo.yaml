@@ -18,13 +18,13 @@
 #   num_samples: 1                      # set to other only during tuning
 #   lr_schedule: null                   # [[timestamp, lr], ...]
 #   entropy_coeff_schedule: null        # [[timestamp, entropy], ...]
-#   resume: AUTO                        # can be Bool|"ERRORED_ONLY"|"all"|"AUTO"
+#   resume: false                       # can be Bool|"ERRORED_ONLY"|"all"
 
 algo_args:
   use_gae: True
   lambda: 0.99
   kl_coeff: 0.2
-  batch_episode: 1
+  batch_episode: 10       # 10 for semantic obs, 1 for camera obs
   num_sgd_iter: 5
   vf_loss_coeff: 1.0
   lr: 0.01
@@ -32,8 +32,11 @@ algo_args:
   clip_param: 0.3
   vf_clip_param: 10.0
   batch_mode: "complete_episodes"
+  num_samples: 1
+  resume: false
+  restore: null
 
-  lr_scheduler:
+  lr_schedule:
   - - 0
     - 0.01
   - - 100000
@@ -45,7 +48,7 @@ algo_args:
   - - 10000000
     - 0.0001
 
-  entropy_coeff_scheduler:
+  entropy_coeff_schedule:
   - - 0
     - 0.05
   - - 1000000
