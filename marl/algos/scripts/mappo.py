@@ -113,7 +113,8 @@ def run_mappo(config_dict, common_config, env_dict, stop):
                        log_to_file=True,
                        checkpoint_freq=_param.get("checkpoint_freq", 100),
                        checkpoint_at_end=True,
-                       resume=_param.get("resume", False)
+                       resume=_param.get("resume", False),
+                       restore=_param.get("restore", None)
                        )
 
     if tuning:
