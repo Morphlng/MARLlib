@@ -26,6 +26,7 @@ env_args:
       use_depth_camera: false
       initial_speed: 20 # km/h
       target_speed: 20  # km/h
+      low_speed_threshold: 5 # km/h
     car2:
       auto_control: false
       camera_type: semseg
@@ -45,6 +46,15 @@ env_args:
       use_depth_camera: false
       initial_speed: 20 # km/h
       target_speed: 20  # km/h
+      low_speed_threshold: 5 # km/h
+    ego:
+      type: vehicle_4W
+      rolename: hero
+      enable_planner: true
+      early_terminate_on_collision: true
+      collision_sensor: 'on'
+      lane_sensor: 'on'
+      send_measurements: true
   env:
     discrete_actions: true
     enable_planner: true
@@ -56,14 +66,14 @@ env_args:
     send_measurements: true
     server_map: /Game/Carla/Maps/Town03
     # Set these two to connect to existing Carla Server
-    # server_ip: localhost
-    # server_port: 2000
+    server_ip: localhost
+    server_port: 2000
     spectator_loc:
     - 140
     - 68
     - 9
     squash_action_logits: false
-    sync_server: true
+    sync_server: false
     use_depth_camera: false
     verbose: false
     obs_x_res: 84
@@ -88,6 +98,15 @@ env_args:
         - 147.6
         - 62.6
         - 0.4
+      ego:
+       end:
+       - 167
+       - 75.7
+       - 0.13
+       start:
+       - 188
+       - 59
+       - 0.4
     map: Town03
     max_steps: 500
     weather_distribution:

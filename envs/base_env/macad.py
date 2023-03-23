@@ -4,6 +4,7 @@
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from gym.spaces import Dict as GymDict, Tuple as GymTuple, Box
 from macad_gym.envs import MultiCarlaEnv, HomoNcomIndePOIntrxMASS3CTWN3, HeteNcomIndePOIntrxMATLS1B2C1PTWN3
+from copy import deepcopy
 import numpy as np
 
 env_name_mapping = {
@@ -27,6 +28,7 @@ policy_mapping_dict = {
 
 class RllibMacad(MultiAgentEnv):
     def __init__(self, env_config):
+        env_config = deepcopy(env_config)
         map_name = env_config.get("map_name", "default")
         self.use_only_semantic = env_config.get("use_only_semantic", False)
         self.use_only_camera = env_config.get("use_only_camera", False)
@@ -116,6 +118,9 @@ class RllibMacad(MultiAgentEnv):
         return obs
 
     def step(self, action_dict):
+
+        if "ego" in action_dict:
+            action_dict["ego"] = 0 if self.env_config["env"]["discrete_actions"] else (0, 0)
 
         origin_obs, r, d, i = self.env.step(action_dict)
 
