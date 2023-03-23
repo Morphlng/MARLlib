@@ -38,15 +38,16 @@ class RllibMacad(MultiAgentEnv):
         env_class = env_name_mapping[map_name]
         if map_name != "custom":
             self.env = env_class()
-            self.env_config = self.env.configs.copy()
+            self.env_config = self.env.configs
         else:
             self.env = env_class(env_config)
-            self.env_config = env_config.copy()
+            self.env_config = env_config
 
         if self.use_only_semantic:
             assert self.env_config["env"]["send_measurements"], "use_only_semantic can only be True when send_measurement is True"
 
-        self.num_agents = len(self.env_config["actors"])
+        agents_cnt = len(self.env_config["actors"])
+        self.num_agents = agents_cnt if "ego" not in self.env_config["actors"] else (agents_cnt - 1)
         self.agents = ["car_{}".format(i) for i in range(self.num_agents)]
 
         # Note1: obs is the partial observation of the agent, state is the global state
@@ -94,16 +95,21 @@ class RllibMacad(MultiAgentEnv):
         try:
             origin_obs = self.env.reset()
         except Exception as e:
+            print("Exception raised when reset: {}".format(e))
             print("Reset failed, try hard reset")
             origin_obs = self._hard_reset()
 
         obs = {}
         for actor_id in origin_obs.keys():
+            if actor_id == "ego":
+                continue
+
             if self.use_only_semantic:
                 obs[actor_id] = {
                     "obs": origin_obs[actor_id][1],
                 }
             elif self.use_only_camera:
+                # !Warning: This may cause problem due to ego
                 obs[actor_id] = {
                     "obs": origin_obs[actor_id][0] if self.obs_with_measurement else origin_obs[actor_id],
                     "state": np.concatenate([origin_obs[id][0] if self.obs_with_measurement else origin_obs[id]
@@ -112,20 +118,24 @@ class RllibMacad(MultiAgentEnv):
                 }
             else:
                 obs[actor_id] = {
-                    "obs": origin_obs[actor_id]
+                    "obs": origin_obs[actor_id][1],     # Local Semantic
+                    "state": origin_obs[actor_id][0]    # Global Camera
                 }
 
         return obs
 
     def step(self, action_dict):
 
-        if "ego" in action_dict:
+        if "ego" in self.env_config["actors"]:
             action_dict["ego"] = 0 if self.env_config["env"]["discrete_actions"] else (0, 0)
 
         origin_obs, r, d, i = self.env.step(action_dict)
 
-        obs = {}
+        obs, reward, done, info = {}, {}, {"__all__": d["__all__"]}, {}
         for actor_id in origin_obs.keys():
+            if actor_id == "ego":
+                continue
+
             if self.use_only_semantic:
                 obs[actor_id] = {
                     "obs": origin_obs[actor_id][1],
@@ -139,10 +149,15 @@ class RllibMacad(MultiAgentEnv):
                 }
             else:
                 obs[actor_id] = {
-                    "obs": origin_obs[actor_id]
+                    "obs": origin_obs[actor_id][1],
+                    "state": origin_obs[actor_id][0]
                 }
+            
+            reward[actor_id] = r[actor_id]
+            done[actor_id] = d[actor_id]
+            info[actor_id] = i[actor_id]
 
-        return obs, r, d, i
+        return obs, reward, done, info
 
     def close(self):
         self.env.close()
