@@ -126,6 +126,8 @@ class RllibMacad(MultiAgentEnv):
 
     def step(self, action_dict):
 
+        # We add this only to update the observation
+        # This action will not take effect
         if "ego" in self.env_config["actors"]:
             action_dict["ego"] = 0 if self.env_config["env"]["discrete_actions"] else (0, 0)
 

@@ -13,7 +13,7 @@ env_args:
       collision_sensor: 'on'
       convert_images_to_video: false
       early_terminate_on_collision: true
-      enable_planner: true
+      enable_planner: true  # Turn to false if map doesn't have waypoints
       lane_sensor: 'on'
       log_images: false
       log_measurements: false
@@ -27,6 +27,9 @@ env_args:
       initial_speed: 20 # km/h
       target_speed: 20  # km/h
       low_speed_threshold: 5 # km/h
+      # You can specify model as below
+      # otherwise will use "vehicle.*"
+      # model: vehicle.lincoln.mkz_2017
     car2:
       auto_control: false
       camera_type: semseg
@@ -65,9 +68,11 @@ env_args:
     render_y_res: 600
     send_measurements: true
     server_map: /Game/Carla/Maps/Town03
+    
     # Set these two to connect to existing Carla Server
     server_ip: localhost
     server_port: 2000
+    
     spectator_loc:
     - 140
     - 68
@@ -78,6 +83,12 @@ env_args:
     verbose: false
     obs_x_res: 84
     obs_y_res: 84
+    
+    # Ego vehicle and Macad use Redis to communicate
+    use_redis: true
+    redis_host: "localhost"
+    redis_port: 6379
+    redis_db: 0
   scenarios:
     actors:
       car1:
