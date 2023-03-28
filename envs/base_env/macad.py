@@ -28,20 +28,19 @@ policy_mapping_dict = {
 
 class RllibMacad(MultiAgentEnv):
     def __init__(self, env_config):
-        env_config = deepcopy(env_config)
-        map_name = env_config.get("map_name", "default")
-        self.use_only_semantic = env_config.get("use_only_semantic", False)
-        self.use_only_camera = env_config.get("use_only_camera", False)
+        config = deepcopy(env_config)
+        map_name = config.get("map_name", "default")
+        self.use_only_semantic = config.get("use_only_semantic", False)
+        self.use_only_camera = config.get("use_only_camera", False)
         assert not (
             self.use_only_semantic and self.use_only_camera), "use_only_semantic and use_only_camera can not be True at the same time"
 
         env_class = env_name_mapping[map_name]
         if map_name != "custom":
             self.env = env_class()
-            self.env_config = self.env.configs
         else:
-            self.env = env_class(env_config)
-            self.env_config = env_config
+            self.env = env_class(config)
+        self.env_config = self.env.configs
 
         if self.use_only_semantic:
             assert self.env_config["env"]["send_measurements"], "use_only_semantic can only be True when send_measurement is True"
@@ -86,12 +85,14 @@ class RllibMacad(MultiAgentEnv):
 
     def _hard_reset(self):
         """If normal reset raise an exception, try hard reset first"""
-        self.env.close()
+        if self.env:
+            self.env.close()
+        
         self.env = MultiCarlaEnv(self.env_config)
         return self.env.reset()
 
     def reset(self):
-
+        """Reset the environment and return the initial observation."""
         try:
             origin_obs = self.env.reset()
         except Exception as e:
@@ -99,29 +100,7 @@ class RllibMacad(MultiAgentEnv):
             print("Reset failed, try hard reset")
             origin_obs = self._hard_reset()
 
-        obs = {}
-        for actor_id in origin_obs.keys():
-            if actor_id == "ego":
-                continue
-
-            if self.use_only_semantic:
-                obs[actor_id] = {
-                    "obs": origin_obs[actor_id][1],
-                }
-            elif self.use_only_camera:
-                # !Warning: This may cause problem due to ego
-                obs[actor_id] = {
-                    "obs": origin_obs[actor_id][0] if self.obs_with_measurement else origin_obs[actor_id],
-                    "state": np.concatenate([origin_obs[id][0] if self.obs_with_measurement else origin_obs[id]
-                                             for id in origin_obs.keys()
-                                             if id != actor_id], axis=-1)
-                }
-            else:
-                obs[actor_id] = {
-                    "obs": origin_obs[actor_id][1],     # Local Semantic
-                    "state": origin_obs[actor_id][0]    # Global Camera
-                }
-
+        obs, _, _, _ = self._process_return(origin_obs)
         return obs
 
     def step(self, action_dict):
@@ -131,36 +110,48 @@ class RllibMacad(MultiAgentEnv):
         if "ego" in self.env_config["actors"]:
             action_dict["ego"] = 0 if self.env_config["env"]["discrete_actions"] else (0, 0)
 
-        origin_obs, r, d, i = self.env.step(action_dict)
-
-        obs, reward, done, info = {}, {}, {"__all__": d["__all__"]}, {}
-        for actor_id in origin_obs.keys():
-            if actor_id == "ego":
-                continue
-
-            if self.use_only_semantic:
-                obs[actor_id] = {
-                    "obs": origin_obs[actor_id][1],
-                }
-            elif self.use_only_camera:
-                obs[actor_id] = {
-                    "obs": origin_obs[actor_id][0] if self.obs_with_measurement else origin_obs[actor_id],
-                    "state": np.concatenate([origin_obs[id][0] if self.obs_with_measurement else origin_obs[id]
-                                             for id in origin_obs.keys()
-                                             if id != actor_id], axis=-1)
-                }
-            else:
-                obs[actor_id] = {
-                    "obs": origin_obs[actor_id][1],
-                    "state": origin_obs[actor_id][0]
-                }
+        try:
+            origin_obs, r, d, i = self.env.step(action_dict)
+        except Exception as e:
+            print("Exception raised when step: {}".format(e))
+            print("Step failed, set done to True and try hard reset on next reset")
+            # Pseudo return
+            obs, reward, done, info = self._process_return(self.env.observation_space.sample())
+            self.env = None
+            return obs, reward, done, info
             
-            reward[actor_id] = r[actor_id]
-            done[actor_id] = d[actor_id]
-            info[actor_id] = i[actor_id]
-
+        obs, reward, done, info = self._process_return(origin_obs, r, d, i)
         return obs, reward, done, info
 
+    def _process_return(self, o, r=None, d=None, i=None):
+        """Process the return of env.step"""
+        obs, reward, done, info = {}, {}, {}, {}
+        for actor_id in o.keys():
+            if actor_id != "ego":
+                if self.use_only_semantic:
+                    obs[actor_id] = {
+                        "obs": o[actor_id][1],
+                    }
+                elif self.use_only_camera:
+                    obs[actor_id] = {
+                        "obs": o[actor_id][0] if self.obs_with_measurement else o[actor_id],
+                        "state": np.concatenate([o[id][0] if self.obs_with_measurement else o[id]
+                                                for id in o.keys()
+                                                if id != actor_id], axis=-1)
+                    }
+                else:
+                    obs[actor_id] = {
+                        "obs": o[actor_id][1],
+                        "state": o[actor_id][0]
+                    }
+                
+                reward[actor_id] = r[actor_id] if r is not None else 0
+                done[actor_id] = d[actor_id] if d is not None else True
+                info[actor_id] = i[actor_id] if i is not None else None
+        
+        done["__all__"] = d["__all__"] if d is not None else True
+        return obs, reward, done, info
+        
     def close(self):
         self.env.close()
 

@@ -26,7 +26,7 @@ env_args:
       use_depth_camera: false
       initial_speed: 20 # km/h
       target_speed: 20  # km/h
-      low_speed_threshold: 5 # km/h
+      low_speed_threshold: 3 # km/h
       # You can specify model as below
       # otherwise will use "vehicle.*"
       # model: vehicle.lincoln.mkz_2017
@@ -49,7 +49,7 @@ env_args:
       use_depth_camera: false
       initial_speed: 20 # km/h
       target_speed: 20  # km/h
-      low_speed_threshold: 5 # km/h
+      low_speed_threshold: 3 # km/h
     ego:
       type: vehicle_4W
       rolename: hero
