@@ -89,6 +89,7 @@ class RllibMacad(MultiAgentEnv):
             self.env.close()
         
         self.env = MultiCarlaEnv(self.env_config)
+        self.env_config = self.env.configs
         return self.env.reset()
 
     def reset(self):
