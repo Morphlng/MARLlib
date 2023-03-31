@@ -3,13 +3,14 @@
 """
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from gym.spaces import Dict as GymDict, Tuple as GymTuple, Box
-from macad_gym.envs import MultiCarlaEnv, HomoNcomIndePOIntrxMASS3CTWN3, HeteNcomIndePOIntrxMATLS1B2C1PTWN3
+from macad_gym.envs import MultiCarlaEnv, HomoNcomIndePOIntrxMASS3CTWN3, HeteNcomIndePOIntrxMATLS1B2C1PTWN3, Strike
 from copy import deepcopy
 import numpy as np
 
 env_name_mapping = {
     "HomoNcomIndePOIntrxMASS3CTWN3": HomoNcomIndePOIntrxMASS3CTWN3,
     "HeteNcomIndePOIntrxMATLS1B2C1PTWN3": HeteNcomIndePOIntrxMATLS1B2C1PTWN3,
+    "Strike": Strike,
     "default": MultiCarlaEnv,
     "custom": MultiCarlaEnv,
 }
@@ -29,14 +30,14 @@ policy_mapping_dict = {
 class RllibMacad(MultiAgentEnv):
     def __init__(self, env_config):
         config = deepcopy(env_config)
-        map_name = config.get("map_name", "default")
+        self.map_name = config.get("map_name", "default")
         self.use_only_semantic = config.get("use_only_semantic", False)
         self.use_only_camera = config.get("use_only_camera", False)
         assert not (
             self.use_only_semantic and self.use_only_camera), "use_only_semantic and use_only_camera can not be True at the same time"
 
-        env_class = env_name_mapping[map_name]
-        if map_name != "custom":
+        env_class = env_name_mapping[self.map_name]
+        if self.map_name != "custom":
             self.env = env_class()
         else:
             self.env = env_class(config)
@@ -88,18 +89,22 @@ class RllibMacad(MultiAgentEnv):
         if self.env:
             self.env.close()
         
-        self.env = MultiCarlaEnv(self.env_config)
+        if env_name_mapping[self.map_name] == MultiCarlaEnv:
+            self.env = MultiCarlaEnv(self.env_config)
+        else:
+            self.env = env_name_mapping[self.map_name]()
         self.env_config = self.env.configs
-        return self.env.reset()
 
     def reset(self):
         """Reset the environment and return the initial observation."""
-        try:
-            origin_obs = self.env.reset()
-        except Exception as e:
-            print("Exception raised when reset: {}".format(e))
-            print("Reset failed, try hard reset")
-            origin_obs = self._hard_reset()
+        while True:
+            try:
+                origin_obs = self.env.reset()
+                break
+            except Exception as e:
+                print("Exception raised when reset: {}".format(e))
+                print("Reset failed, try hard reset")
+                self._hard_reset()
 
         obs, _, _, _ = self._process_return(origin_obs)
         return obs

@@ -1,7 +1,7 @@
 env: macad
 
 env_args:
-  map_name: "custom" # | "default" | "custom" | "HomoNcomIndePOIntrxMASS3CTWN3" | "HeteNcomIndePOIntrxMATLS1B2C1PTWN3"
+  map_name: "Strike" # | "default" | "custom" | "HomoNcomIndePOIntrxMASS3CTWN3" | "HeteNcomIndePOIntrxMATLS1B2C1PTWN3"
   use_only_semantic: true
   use_only_camera: false
   
