@@ -53,6 +53,13 @@ def run_maddpg(config_dict, common_config, env_dict, stop):
                        stop=stop,
                        config=config,
                        verbose=1,
-                       progress_reporter=CLIReporter())
+                       progress_reporter=CLIReporter(),
+                       checkpoint_at_end=True,
+                       checkpoint_freq=_param.get("checkpoint_freq", 100),
+                       resume=_param.get("resume", False),
+                       restore=_param.get("restore", None),
+                       # By default, we will not stop trials due to failures.
+                       max_failures=_param.get("max_failures", -1),
+                       )
 
     return results
