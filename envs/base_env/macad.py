@@ -3,7 +3,7 @@
 """
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from gym.spaces import Dict as GymDict, Tuple as GymTuple, Box
-from macad_gym.envs import MultiCarlaEnv, HomoNcomIndePOIntrxMASS3CTWN3, HeteNcomIndePOIntrxMATLS1B2C1PTWN3, Strike
+from macad_gym.envs import MultiCarlaEnv, HomoNcomIndePOIntrxMASS3CTWN3, HeteNcomIndePOIntrxMATLS1B2C1PTWN3, Strike, MeetCarTown03, TestTown05
 from copy import deepcopy
 import numpy as np
 
@@ -11,6 +11,8 @@ env_name_mapping = {
     "HomoNcomIndePOIntrxMASS3CTWN3": HomoNcomIndePOIntrxMASS3CTWN3,
     "HeteNcomIndePOIntrxMATLS1B2C1PTWN3": HeteNcomIndePOIntrxMATLS1B2C1PTWN3,
     "Strike": Strike,
+    "MeetCar": MeetCarTown03,
+    "Town05": TestTown05,
     "default": MultiCarlaEnv,
     "custom": MultiCarlaEnv,
 }
@@ -89,10 +91,11 @@ class RllibMacad(MultiAgentEnv):
         if self.env:
             self.env.close()
         
-        if env_name_mapping[self.map_name] == MultiCarlaEnv:
+        env_class = env_name_mapping[self.map_name]
+        if env_class == MultiCarlaEnv:
             self.env = MultiCarlaEnv(self.env_config)
         else:
-            self.env = env_name_mapping[self.map_name]()
+            self.env = env_class()
         self.env_config = self.env.configs
 
     def reset(self):
