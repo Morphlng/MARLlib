@@ -136,7 +136,7 @@ class RllibMacad(MultiAgentEnv):
         """Process the return of env.step"""
         obs, reward, done, info = {}, {}, {}, {}
         for actor_id in o.keys():
-            if actor_id != "ego":
+            if actor_id not in ["ego", "global"]:
                 if self.use_only_semantic:
                     obs[actor_id] = {
                         "obs": o[actor_id][1],
@@ -165,11 +165,13 @@ class RllibMacad(MultiAgentEnv):
         self.env.close()
 
     def get_env_info(self):
+        scenario_config = self.env._scenario_config
+
         env_info = {
             "space_obs": self.observation_space,
             "space_act": self.action_space,
             "num_agents": self.num_agents,
-            "episode_limit": self.env._scenario_config["max_steps"],
+            "episode_limit": scenario_config["max_steps"] if isinstance(scenario_config, dict) else scenario_config[0]["max_steps"],
             "policy_mapping_info": policy_mapping_dict
         }
         return env_info
