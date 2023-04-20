@@ -34,6 +34,7 @@ def run_happo(config_dict, common_config, env_dict, stop):
     num_sgd_iter = _param["num_sgd_iter"]
     vf_loss_coeff = _param["vf_loss_coeff"]
     entropy_coeff = _param["entropy_coeff"]
+    entropy_coeff_schedule = _param.get("entropy_coeff_schedule", None)
     vf_clip_param = _param["vf_clip_param"]
     gamma = _param["gamma"]
 
@@ -53,6 +54,7 @@ def run_happo(config_dict, common_config, env_dict, stop):
         "vf_loss_coeff": vf_loss_coeff,
         "vf_clip_param": vf_clip_param,
         "entropy_coeff": entropy_coeff,
+        "entropy_coeff_schedule": entropy_coeff_schedule,
         "lr": critic_lr,
         "num_sgd_iter": num_sgd_iter,
         "train_batch_size": train_batch_size,
@@ -89,7 +91,14 @@ def run_happo(config_dict, common_config, env_dict, stop):
                        config=config,
                        verbose=1,
                        progress_reporter=CLIReporter(),
-                       local_dir=available_local_dir
+                       local_dir=available_local_dir,
+                       log_to_file=True,
+                       checkpoint_freq=_param.get("checkpoint_freq", 100),
+                       checkpoint_at_end=True,
+                       resume=_param.get("resume", False),
+                       restore=_param.get("restore", None),
+                       # By default, we will not stop trials due to failures.
+                       max_failures=_param.get("max_failures", -1),
                        )
 
     return results

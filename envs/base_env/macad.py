@@ -20,7 +20,7 @@ env_name_mapping = {
 policy_mapping_dict = {
     "all_scenario": {
         "description": "macad all scenarios",
-        "team_prefix": ("car_",),
+        "team_prefix": ("car",),
         # This means that all agents have the same policy
         "all_agents_one_policy": True,
         # This means that each agent has a different policy
@@ -48,10 +48,9 @@ class RllibMacad(MultiAgentEnv):
         if self.use_only_semantic:
             assert self.env_config["env"]["send_measurements"], "use_only_semantic can only be True when send_measurement is True"
 
-        agents_cnt = len(self.env_config["actors"])
-        self.num_agents = agents_cnt if "ego" not in self.env_config["actors"] else (agents_cnt - 1)
-        self.agents = ["car_{}".format(i) for i in range(self.num_agents)]
-
+        self.agents = [actor_id for actor_id in self.env_config["actors"] if actor_id not in self.env._ignore_actor_ids and actor_id != "ego"]
+        self.num_agents = len(self.agents)
+        
         # Note1: obs is the partial observation of the agent, state is the global state
         # Note2: if enable send_measurements, the obs will be a Tuple of (obs, semantic_info)
         actor_id = next(iter(self.env_config["actors"].keys()))
