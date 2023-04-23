@@ -1,7 +1,7 @@
 env: macad
 
 env_args:
-  map_name: "Town05" # | "default" | "custom" | "HomoNcomIndePOIntrxMASS3CTWN3" | "HeteNcomIndePOIntrxMATLS1B2C1PTWN3"
+  map_name: "MeetCar" # | "default" | "custom" | "HomoNcomIndePOIntrxMASS3CTWN3" | "HeteNcomIndePOIntrxMATLS1B2C1PTWN3"
   use_only_semantic: true
   use_only_camera: false
   
@@ -68,6 +68,7 @@ env_args:
     render_y_res: 600
     send_measurements: true
     server_map: /Game/Carla/Maps/Town03
+    reload: True
     
     # Set these two to connect to existing Carla Server
     server_ip: localhost
