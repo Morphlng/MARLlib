@@ -32,9 +32,11 @@ num_cpus_per_worker: 1 # cpu allocate to each worker
 num_gpus_per_worker: 0 # gpu allocate to each worker
 checkpoint_freq: 100 # save model every 100 training iterations
 checkpoint_end: True # save model at the end of the exp
+resume: False # resume the previous experiment, can't be true if specified restore model
 restore_path: {"model_path": "", "params_path": ""} # load model and params path: 1. resume exp 2. rendering policy
 stop_iters: 9999999 # stop training at this iteration
-stop_timesteps: 2000000 # stop training at this timesteps
+stop_timesteps: 9000000 # stop training at this timesteps
 stop_reward: 999999 # stop training at this reward
+max_failures: 0 # resume experiment by restart. -1 means infinite retry, default to non-retry
 seed: 321 # ray seed
-local_dir: "" #  all results placed
+local_dir: "~/ray_results" #  all results placed

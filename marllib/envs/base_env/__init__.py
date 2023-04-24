@@ -82,3 +82,8 @@ try:
 except Exception as e:
     ENV_REGISTRY["metadrive"] = str(e)
 
+try:
+    from marllib.envs.base_env.macad import RllibMacad
+    ENV_REGISTRY["macad"] = RllibMacad
+except Exception as e:
+    ENV_REGISTRY["macad"] = str(e)

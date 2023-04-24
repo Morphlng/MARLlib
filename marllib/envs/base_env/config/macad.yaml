@@ -1,0 +1,129 @@
+env: macad
+
+env_args:
+  map_name: "MeetCar" # | "default" | "custom" | "HomoNcomIndePOIntrxMASS3CTWN3" | "HeteNcomIndePOIntrxMATLS1B2C1PTWN3"
+  use_only_semantic: true
+  use_only_camera: false
+  
+  # Only when map_name set to "custom" will read below configurations
+  actors:
+    car1:
+      auto_control: false
+      camera_type: semseg
+      collision_sensor: 'on'
+      convert_images_to_video: false
+      early_terminate_on_collision: true
+      enable_planner: true  # Turn to false if map doesn't have waypoints
+      lane_sensor: 'on'
+      log_images: false
+      log_measurements: false
+      manual_control: false
+      render: false
+      reward_function: custom
+      scenarios: SSUI3C_TOWN3_CAR1
+      send_measurements: true
+      type: vehicle_4W
+      use_depth_camera: false
+      initial_speed: 20 # km/h
+      target_speed: 20  # km/h
+      low_speed_threshold: 3 # km/h
+      # You can specify model as below
+      # otherwise will use "vehicle.*"
+      # model: vehicle.lincoln.mkz_2017
+    car2:
+      auto_control: false
+      camera_type: semseg
+      collision_sensor: 'on'
+      convert_images_to_video: false
+      early_terminate_on_collision: true
+      enable_planner: true
+      lane_sensor: 'on'
+      log_images: false
+      log_measurements: false
+      manual_control: false
+      render: false
+      reward_function: custom
+      scenarios: SSUI3C_TOWN3_CAR3
+      send_measurements: true
+      type: vehicle_4W
+      use_depth_camera: false
+      initial_speed: 20 # km/h
+      target_speed: 20  # km/h
+      low_speed_threshold: 3 # km/h
+    ego:
+      type: vehicle_4W
+      rolename: hero
+      enable_planner: true
+      early_terminate_on_collision: true
+      collision_sensor: 'on'
+      lane_sensor: 'on'
+      send_measurements: true
+  env:
+    discrete_actions: true
+    enable_planner: true
+    fixed_delta_seconds: 0.05
+    framestack: 1
+    render: true
+    render_x_res: 800
+    render_y_res: 600
+    send_measurements: true
+    server_map: /Game/Carla/Maps/Town03
+    reload: True
+    
+    # Set these two to connect to existing Carla Server
+    server_ip: localhost
+    server_port: 2000
+    
+    spectator_loc:
+    - 140
+    - 68
+    - 9
+    squash_action_logits: false
+    sync_server: false
+    use_depth_camera: false
+    verbose: false
+    obs_x_res: 84
+    obs_y_res: 84
+    
+    # Ego vehicle and Macad use Redis to communicate
+    use_redis: true
+    redis_host: "localhost"
+    redis_port: 6379
+    redis_db: 0
+  scenarios:
+    actors:
+      car1:
+        end:
+        - 144
+        - 59
+        - 0
+        start:
+        - 170.5
+        - 80
+        - 0.4
+      car2:
+        end:
+        - 191.2
+        - 62.7
+        - 0
+        start:
+        - 147.6
+        - 62.6
+        - 0.4
+      ego:
+       end:
+       - 167
+       - 75.7
+       - 0.13
+       start:
+       - 188
+       - 59
+       - 0.4
+    map: Town03
+    max_steps: 500
+    weather_distribution:
+    - 0
+
+mask_flag: False
+global_state_flag: False
+opp_action_in_cc: False
