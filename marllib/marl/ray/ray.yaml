@@ -24,7 +24,7 @@
 
 local_mode: False # True for debug mode only
 share_policy: "group" #  individual(separate) / group(division) / all(share)
-evaluation_interval: 10 # evaluate model every 10 training iterations
+evaluation_interval: 0 # evaluate model every 10 training iterations, 0 to disable
 framework: "torch"
 num_workers: 1 # thread number
 num_gpus: 1 # gpu to use
@@ -37,6 +37,6 @@ restore_path: {"model_path": "", "params_path": ""} # load model and params path
 stop_iters: 9999999 # stop training at this iteration
 stop_timesteps: 9000000 # stop training at this timesteps
 stop_reward: 999999 # stop training at this reward
-max_failures: 0 # resume experiment by restart. -1 means infinite retry, default to non-retry
+max_failures: -1 # resume experiment by restart. -1 means infinite retry, default to non-retry
 seed: 321 # ray seed
 local_dir: "~/ray_results" #  all results placed
