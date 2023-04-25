@@ -87,3 +87,11 @@ try:
     ENV_REGISTRY["macad"] = RllibMacad
 except Exception as e:
     ENV_REGISTRY["macad"] = str(e)
+    ENV_REGISTRY["mate"] = str(e)
+
+try:
+    from marllib.envs.base_env.gobigger import RLlibGoBigger
+    ENV_REGISTRY["gobigger"] = RLlibGoBigger
+except Exception as e:
+    ENV_REGISTRY["gobigger"] = str(e)
+
