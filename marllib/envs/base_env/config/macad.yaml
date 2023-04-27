@@ -1,7 +1,7 @@
 env: macad
 
 env_args:
-  map_name: "MeetCar" # | "default" | "custom" | "HomoNcomIndePOIntrxMASS3CTWN3" | "HeteNcomIndePOIntrxMATLS1B2C1PTWN3"
+  map_name: "Town01" # | "default" | "custom" | "Town01" | "Town03" | "Town05" | "Town11"
   use_only_semantic: true
   use_only_camera: false
   
