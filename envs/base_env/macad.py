@@ -3,16 +3,15 @@
 """
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from gym.spaces import Dict as GymDict, Tuple as GymTuple, Box
-from macad_gym.envs import MultiCarlaEnv, HomoNcomIndePOIntrxMASS3CTWN3, HeteNcomIndePOIntrxMATLS1B2C1PTWN3, Strike, MeetCarTown03, TestTown05, Town11Sim
+from macad_gym.envs import MultiCarlaEnv, Strike, Town01Sim, Town03Sim, Town05Sim, Town11Sim
 from copy import deepcopy
 import numpy as np
 
 env_name_mapping = {
-    "HomoNcomIndePOIntrxMASS3CTWN3": HomoNcomIndePOIntrxMASS3CTWN3,
-    "HeteNcomIndePOIntrxMATLS1B2C1PTWN3": HeteNcomIndePOIntrxMATLS1B2C1PTWN3,
     "Strike": Strike,
-    "MeetCar": MeetCarTown03,
-    "Town05": TestTown05,
+    "Town01": Town01Sim,
+    "Town03": Town03Sim,
+    "Town05": Town05Sim,
     "Town11": Town11Sim,
     "default": MultiCarlaEnv,
     "custom": MultiCarlaEnv,
