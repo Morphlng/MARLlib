@@ -22,9 +22,15 @@ class PylotManager:
         
         self.conn = redis.Redis(host=self.redis_host, port=self.redis_port, decode_responses=True)
         
-        # Town03 map
-        self.START_PYLOT_COMMAND = ['docker', 'exec', '-it', 'pylot', 'bash', '-c', f'source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=217.043533,62.721680,0.773467']
+        # Town01 map
+        self.START_PYLOT_COMMAND = ['docker', 'exec', '-it', 'pylot', 'bash', '-c', f'source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=-2.358854,32.424950,0.637551']
         
+        # Town03 map
+        # self.START_PYLOT_COMMAND = ['docker', 'exec', '-it', 'pylot', 'bash', '-c', f'source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=217.043533,62.721680,0.773467']
+        
+        # Town11 map
+        # self.START_PYLOT_COMMAND = ['docker', 'exec', '-it', 'pylot', 'bash', '-c', f'source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=-238.007019,-4065.660645,174.704025']
+
         # Afghani map
         # START_PYLOT_COMMAND = 'docker exec -it pylot bash -c "source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=811.485168,6.489622,0.006774"'
         # START_PYLOT_COMMAND = 'docker exec -it pylot bash -c "source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_crossing_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=811.485168,6.489622,0.006774"'
