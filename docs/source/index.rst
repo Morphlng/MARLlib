@@ -1,9 +1,9 @@
-MARLlib: A Scalable and Efficient Multi-agent Reinforcement Learning Library
+MARLlib: A Multi-agent Reinforcement Learning Library
 ========================================
 
-.. figure:: images/logo1.png
+.. figure:: images/allenv.gif
     :align: left
-    :width: 600
+    :width: 900
 
 .. toctree::
    :maxdepth: 1
