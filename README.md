@@ -1,13 +1,14 @@
-[comment]: <> (<div align="center">)
+<div align="center">
 
-[comment]: <> (<img src=docs/source/images/logo1.png width=65% />)
+<img src=docs/source/images/allenv.gif width=95% />
 
-[comment]: <> (</div>)
+</div>
 
-<h1 align="center"> MARLlib: A Scalable and Efficient Multi-agent Reinforcement Learning Library </h1>
+<h1 align="center"> MARLlib: A Multi-agent Reinforcement Learning Library </h1>
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)]()
 ![test](https://github.com/Replicable-MARL/MARLlib/workflows/test/badge.svg)
+![coverage](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/coverage.svg)
 [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/)
 [![GitHub issues](https://img.shields.io/github/issues/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib/issues)
 [![PyPI version](https://badge.fury.io/py/marllib.svg)](https://badge.fury.io/py/marllib)
@@ -16,8 +17,12 @@
 [![Organization](https://img.shields.io/badge/Organization-PKU_MARL-blue.svg)](https://github.com/Replicable-MARL/MARLlib)
 [![Awesome](https://awesome.re/badge.svg)](https://marllib.readthedocs.io/en/latest/resources/awesome.html)
 
-> __News__:
-> We are excited to announce that a major update has just been released. For detailed version information, please refer to the [version info](https://github.com/Replicable-MARL/MARLlib/releases/tag/1.0.2).
+
+| :exclamation:  News |
+|:-----------------------------------------|
+| **March 2023** We are excited to announce that a major update has just been released. For detailed version information, please refer to the [version info](https://github.com/Replicable-MARL/MARLlib/releases/tag/1.0.2).|
+| **May 2023** Exciting news! MARLlib now supports three more tasks: [MATE](https://marllib.readthedocs.io/en/latest/handbook/env.html#mate), [GoBigger](https://marllib.readthedocs.io/en/latest/handbook/env.html#gobigger), [Overcooked-AI](https://marllib.readthedocs.io/en/latest/handbook/env.html#overcooked-ai). Give them a try!|
+| **May 2023 (update)** Supports two more tasks: [MAPDN](https://marllib.readthedocs.io/en/latest/handbook/env.html#power-distribution-networks) and [AirCombat](https://marllib.readthedocs.io/en/latest/handbook/env.html#air-combat). Give them a try!|
 
 
 **Multi-agent Reinforcement Learning Library ([MARLlib](https://arxiv.org/abs/2210.13708))** is ***a MARL library*** that utilizes [**Ray**](https://github.com/ray-project/ray) and one of its toolkits [**RLlib**](https://github.com/ray-project/ray/tree/master/rllib). It offers a comprehensive platform for developing, training, and testing MARL algorithms across various tasks and environments. 
@@ -28,21 +33,17 @@ Here's an example of how MARLlib can be used:
 from marllib import marl
 
 # prepare env
-env = marl.make_env(environment_name="mpe", map_name="simple_spread")
+env = marl.make_env(environment_name="mpe", map_name="simple_spread", force_coop=True)
 
 # initialize algorithm with appointed hyper-parameters
 mappo = marl.algos.mappo(hyperparam_source='mpe')
 
 # build agent model based on env + algorithms + user preference
-model = marl.build_model(env, mappo, {"core_arch": "gru", "encode_layer": "128-256"})
+model = marl.build_model(env, mappo, {"core_arch": "mlp", "encode_layer": "128-256"})
 
 # start training
 mappo.fit(env, model, stop={'timesteps_total': 1000000}, share_policy='group')
-
-# ready to control
-mappo.render(env, model, share_policy='group', restore_path='path_to_checkpoint')
 ```
-
 
 
 ## Why MARLlib?
@@ -56,7 +57,7 @@ Here we provide a table for the comparison of MARLlib and existing work.
 | [MAPPO Benchmark](https://github.com/marlbenchmark/on-policy) |       4 cooperative       |      1     |          share + separate        |          MLP + GRU        |         :x:              |
 | [MAlib](https://github.com/sjtu-marl/malib) |  4 self-play  | 10 | share + group + separate | MLP + LSTM | [![Documentation Status](https://readthedocs.org/projects/malib/badge/?version=latest)](https://malib.readthedocs.io/en/latest/?badge=latest)
 |    [EPyMARL](https://github.com/uoe-agents/epymarl)|        4 cooperative      |    9    |        share + separate       |      GRU             |           :x:            |
-|    **[MARLlib](https://github.com/Replicable-MARL/MARLlib)** |       12 **no task mode restriction**     |    18     |   share + group + separate + **customizable**         |         MLP + CNN + GRU + LSTM          |           [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/) |
+|    **[MARLlib](https://github.com/Replicable-MARL/MARLlib)** |       15 **no task mode restriction**     |    18     |   share + group + separate + **customizable**         |         MLP + CNN + GRU + LSTM          |           [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/) |
 
 |   Library   | Github Stars  | Documentation | Issues Open | Activity | Last Update
 |:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
@@ -65,7 +66,7 @@ Here we provide a table for the comparison of MARLlib and existing work.
 | [MAPPO Benchmark](https://github.com/marlbenchmark/on-policy)| [![GitHub stars](https://img.shields.io/github/stars/marlbenchmark/on-policy)](https://github.com/marlbenchmark/on-policy)   |        :x:              | ![GitHub opened issue](https://img.shields.io/github/issues/marlbenchmark/on-policy.svg) | ![GitHub commit-activity](https://img.shields.io/github/commit-activity/y/marlbenchmark/on-policy?label=commit)| ![GitHub last commit](https://img.shields.io/github/last-commit/marlbenchmark/on-policy?label=last%20update)  
 | [MAlib](https://github.com/sjtu-marl/malib) | [![GitHub stars](https://img.shields.io/github/stars/sjtu-marl/malib)](https://github.com/sjtu-marl/malib) | [![Documentation Status](https://readthedocs.org/projects/malib/badge/?version=latest)](https://malib.readthedocs.io/en/latest/?badge=latest) | ![GitHub opened issue](https://img.shields.io/github/issues/sjtu-marl/malib.svg) | ![GitHub commit-activity](https://img.shields.io/github/commit-activity/y/sjtu-marl/malib?label=commit) | ![GitHub last commit](https://img.shields.io/github/last-commit/sjtu-marl/malib?label=last%20update)  
 |    [EPyMARL](https://github.com/uoe-agents/epymarl)| [![GitHub stars](https://img.shields.io/github/stars/uoe-agents/epymarl)](https://github.com/uoe-agents/epymarl)        |           :x:            | ![GitHub opened issue](https://img.shields.io/github/issues/uoe-agents/epymarl.svg) | ![GitHub commit-activity](https://img.shields.io/github/commit-activity/y/uoe-agents/epymarl?label=commit) | ![GitHub last commit](https://img.shields.io/github/last-commit/uoe-agents/epymarl?label=last%20update)  
-|    **[MARLlib](https://github.com/Replicable-MARL/MARLlib)** |  [![GitHub stars](https://img.shields.io/github/stars/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib)  |           [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/) | ![GitHub opened issue](https://img.shields.io/github/issues/Replicable-MARL/MARLlib.svg) | ![GitHub commit-activity](https://img.shields.io/github/commit-activity/m/Replicable-MARL/MARLlib/sy_dev?label=commit) | ![GitHub last commit](https://img.shields.io/github/last-commit/Replicable-MARL/MARLlib/sy_dev?label=last%20update)  
+|    **[MARLlib](https://github.com/Replicable-MARL/MARLlib)** |  [![GitHub stars](https://img.shields.io/github/stars/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib)  |           [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/) | ![GitHub opened issue](https://img.shields.io/github/issues/Replicable-MARL/MARLlib.svg) | ![GitHub commit-activity](https://img.shields.io/github/commit-activity/m/Replicable-MARL/MARLlib?label=commit) | ![GitHub last commit](https://img.shields.io/github/last-commit/Replicable-MARL/MARLlib?label=last%20update)  
 
 
 
@@ -95,7 +96,7 @@ Here we provide a table for the comparison of MARLlib and existing work.
 ## Installation
 
 > __Note__:
-> Currently MARLlib supports Linux only.
+> Please note that at this time, MARLlib is only compatible with Linux operating systems.
 
 ### Step-by-step  (recommended)
 
@@ -118,6 +119,13 @@ $ pip install -r requirements.txt
 #### 2. install environments (optional)
 
 Please follow [this guide](https://marllib.readthedocs.io/en/latest/handbook/env.html).
+
+> __Note__:
+> We recommend always keeping the gym version at 0.21.0.
+
+```bash
+$ pip install gym==0.21.0
+```
 
 #### 3. install patches (basic)
 
@@ -175,18 +183,21 @@ Most of the popular environments in MARL research are supported by MARLlib:
 
 | Env Name | Learning Mode | Observability | Action Space | Observations |
 | :-----------: | :-----------: | :-----------: | :-----------: | :-----------: |
-| **[LBF](https://github.com/semitable/lb-foraging)**  | cooperative + collaborative | Both | Discrete | 1D  |
-| **[RWARE](https://github.com/semitable/robotic-warehouse)**  | cooperative | Partial | Discrete | 1D  |
-| **[MPE](https://github.com/openai/multiagent-particle-envs)**  | cooperative + collaborative + mixed | Both | Both | 1D  |
-| **[SMAC](https://github.com/oxwhirl/smac)**  | cooperative | Partial | Discrete | 1D |
-| **[MetaDrive](https://github.com/decisionforce/metadrive)**  | collaborative | Partial | Continuous | 1D |
-| **[MAgent](https://www.pettingzoo.ml/magent)** | collaborative + mixed | Partial | Discrete | 2D |
-| **[Pommerman](https://github.com/MultiAgentLearning/playground)**  | collaborative + competitive + mixed | Both | Discrete | 2D |
-| **[MAMuJoCo](https://github.com/schroederdewitt/multiagent_mujoco)**  | cooperative | Full | Continuous | 1D |
-| **[GRF](https://github.com/google-research/football)**  | collaborative + mixed | Full | Discrete | 2D |
-| **[Hanabi](https://github.com/deepmind/hanabi-learning-environment)** | cooperative | Partial | Discrete | 1D |
-| **[MATE](https://github.com/XuehaiPan/mate)** | cooperative + mixed | Partial | Both | 1D |
-| **[GoBigger](https://github.com/opendilab/GoBigger)** | cooperative + mixed | Both | Continuous | 1D |
+| **[LBF](https://marllib.readthedocs.io/en/latest/handbook/env.html#lbf)**  | cooperative + collaborative | Both | Discrete | 1D  |
+| **[RWARE](https://marllib.readthedocs.io/en/latest/handbook/env.html#rware)**  | cooperative | Partial | Discrete | 1D  |
+| **[MPE](https://marllib.readthedocs.io/en/latest/handbook/env.html#mpe)**  | cooperative + collaborative + mixed | Both | Both | 1D  |
+| **[SMAC](https://marllib.readthedocs.io/en/latest/handbook/env.html#smac)**  | cooperative | Partial | Discrete | 1D |
+| **[MetaDrive](https://marllib.readthedocs.io/en/latest/handbook/env.html#metadrive)**  | collaborative | Partial | Continuous | 1D |
+| **[MAgent](https://marllib.readthedocs.io/en/latest/handbook/env.html#magent)** | collaborative + mixed | Partial | Discrete | 2D |
+| **[Pommerman](https://marllib.readthedocs.io/en/latest/handbook/env.html#pommerman)**  | collaborative + competitive + mixed | Both | Discrete | 2D |
+| **[MAMuJoCo](https://marllib.readthedocs.io/en/latest/handbook/env.html#mamujoco)**  | cooperative | Full | Continuous | 1D |
+| **[GRF](https://marllib.readthedocs.io/en/latest/handbook/env.html#google-research-football)**  | collaborative + mixed | Full | Discrete | 2D |
+| **[Hanabi](https://marllib.readthedocs.io/en/latest/handbook/env.html#hanabi)** | cooperative | Partial | Discrete | 1D |
+| **[MATE](https://marllib.readthedocs.io/en/latest/handbook/env.html#mate)** | cooperative + mixed | Partial | Both | 1D |
+| **[GoBigger](https://marllib.readthedocs.io/en/latest/handbook/env.html#gobigger)** | cooperative + mixed | Both | Continuous | 1D |
+| **[Overcooked-AI](https://marllib.readthedocs.io/en/latest/handbook/env.html#overcooked-ai)** | cooperative | Full | Discrete | 1D |
+| **[PDN](https://marllib.readthedocs.io/en/latest/handbook/env.html#power-distribution-networks)** | cooperative | Partial | Continuous | 1D |
+| **[AirCombat](https://marllib.readthedocs.io/en/latest/handbook/env.html#air-combat)** | cooperative + mixed | Partial | MultiDiscrete | 1D |
 
 Each environment has a readme file, standing as the instruction for this task, including env settings, installation, and
 important notes.
@@ -272,11 +283,11 @@ Choose `mlp`, `gru`, or `lstm` as you like to build the complete model.
 from marllib import marl
 
 # prepare env
-env = marl.make_env(environment_name="mpe", map_name="simple_spread")
+env = marl.make_env(environment_name="smac", map_name="5m_vs_6m")
 # initialize algorithm with appointed hyper-parameters
-mappo = marl.algos.mappo(hyperparam_source="mpe")
+mappo = marl.algos.mappo(hyperparam_source="smac")
 # build agent model based on env + algorithms + user preference
-model = marl.build_model(env, mappo, {"core_arch": "mlp", "encode_layer": "128-256"})
+model = marl.build_model(env, mappo, {"core_arch": "gru", "encode_layer": "128-256"})
 # start training
 mappo.fit(
   env, model, 
@@ -294,9 +305,23 @@ mappo.render(
 ```
 </details>
 
-## Benchmark results
+## Results
 
-All results are listed [here](https://github.com/Replicable-MARL/MARLlib/tree/main/results).
+Under the current working directory, you can find all the training data (logging and TensorFlow files) as well as the saved models. To visualize the learning curve, you can use Tensorboard. Follow the steps below:
+
+1. Install Tensorboard by running the following command:
+```bash
+pip install tensorboard
+```
+
+2. Use the following command to launch Tensorboard and visualize the results:
+```bash
+tensorboard --logdir .
+```
+
+Alternatively, you can refer to [this tutorial](https://github.com/tensorflow/tensorboard/blob/master/docs/get_started.ipynb) for more detailed instructions.
+
+For a list of all the existing results, you can visit [this link](https://github.com/Replicable-MARL/MARLlib/tree/main/results). Please note that these results were obtained from an older version of MARLlib, which may lead to inconsistencies when compared to the current results.
 
 ## Quick examples
 
@@ -317,7 +342,6 @@ MARLlib provides some practical examples for you to refer to.
 
 Try MPE + MAPPO examples on Google Colaboratory!
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/sy_dev/marllib.ipynb)
-
 More tutorial documentations are available [here](https://marllib.readthedocs.io/).
 
 ## Awesome List
@@ -345,16 +369,34 @@ If you would like to get involved, here is information on [contribution guidelin
 
 You can contribute in multiple ways, e.g., reporting bugs, writing or translating documentation, reviewing or refactoring code, requesting or implementing new features, etc.
 
-## Paper
+## Citation
 
 If you use MARLlib in your research, please cite the [MARLlib paper](https://arxiv.org/abs/2210.13708).
 
 ```tex
 @article{hu2022marllib,
-  title={MARLlib: Extending RLlib for Multi-agent Reinforcement Learning},
-  author={Hu, Siyi and Zhong, Yifan and Gao, Minquan and Wang, Weixun and Dong, Hao and Li, Zhihui and Liang, Xiaodan and Chang, Xiaojun and Yang, Yaodong},
-  journal={arXiv preprint arXiv:2210.13708},
-  year={2022}
+      title={MARLlib: A Scalable Multi-agent Reinforcement Learning Library},
+      author={Hu, Siyi and Zhong, Yifan and Gao, Minquan and Wang, Weixun and Dong, Hao and Li, Zhihui and Liang, Xiaodan and Chang, Xiaojun and Yang, Yaodong},
+      journal={arXiv preprint arXiv:2210.13708},
+      year={2022}
 }
 ```
+
+Works that are based on or closely collaborate with MARLlib <[link](https://github.com/PKU-MARL/HARL)>
+
+```tex
+@InProceedings{hu2022policy,
+      title={Policy Diagnosis via Measuring Role Diversity in Cooperative Multi-agent {RL}},
+      author={Hu, Siyi and Xie, Chuanlong and Liang, Xiaodan and Chang, Xiaojun},
+      booktitle={Proceedings of the 39th International Conference on Machine Learning},
+      year={2022},
+}
+@misc{zhong2023heterogeneousagent,
+      title={Heterogeneous-Agent Reinforcement Learning}, 
+      author={Yifan Zhong and Jakub Grudzien Kuba and Siyi Hu and Jiaming Ji and Yaodong Yang},
+      archivePrefix={arXiv},
+      year={2023},
+}
+```
+
 
