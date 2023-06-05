@@ -56,12 +56,12 @@ class PylotManager:
                         pylot_process.terminate()
                     
                     subprocess.run(self.KILL_PYLOT, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    self.conn.set('START_EGO', '0')
                     print("pylot killed")
 
                     # Start new pylot process
-                    time.sleep(2)
+                    time.sleep(1)
                     print('start pylot')
-                    self.conn.set('START_EGO', '0')
                     pylot_process = subprocess.Popen(self.START_PYLOT_COMMAND, shell=False, preexec_fn=os.setsid)
                     print('pylot started')
                 
