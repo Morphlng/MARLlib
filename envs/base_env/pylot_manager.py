@@ -23,7 +23,7 @@ class PylotManager:
         self.conn = redis.Redis(host=self.redis_host, port=self.redis_port, decode_responses=True)
         
         # Town01 map
-        self.START_PYLOT_COMMAND = ['docker', 'exec', '-it', 'pylot', 'bash', '-c', f'source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=-2.358854,32.424950,0.637551']
+        self.START_PYLOT_COMMAND = ['docker', 'exec', '-it', 'pylot', 'bash', '-c', f'source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=-2.128490,317.256927,0.556630']
         
         # Town03 map
         # self.START_PYLOT_COMMAND = ['docker', 'exec', '-it', 'pylot', 'bash', '-c', f'source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=217.043533,62.721680,0.773467']
@@ -56,12 +56,12 @@ class PylotManager:
                         pylot_process.terminate()
                     
                     subprocess.run(self.KILL_PYLOT, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    self.conn.set('START_EGO', '0')
                     print("pylot killed")
 
                     # Start new pylot process
-                    time.sleep(2)
+                    time.sleep(1)
                     print('start pylot')
-                    self.conn.set('START_EGO', '0')
                     pylot_process = subprocess.Popen(self.START_PYLOT_COMMAND, shell=False, preexec_fn=os.setsid)
                     print('pylot started')
                 
@@ -89,7 +89,7 @@ class PylotManager:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ue_host', type=str, default='172.26.144.1')
+    parser.add_argument('--ue_host', type=str, default='172.17.0.1')
     parser.add_argument('--ue_port', type=int, default=2000)
     parser.add_argument('--redis_host', type=str, default='127.0.0.1')
     parser.add_argument('--redis_port', type=int, default=6379)
