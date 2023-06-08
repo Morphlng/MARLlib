@@ -91,3 +91,24 @@ try:
     COOP_ENV_REGISTRY["gobigger"] = RLlibGoBigger_FCOOP
 except Exception as e:
     COOP_ENV_REGISTRY["gobigger"] = str(e)
+
+try:
+    from marllib.envs.global_reward_env.overcooked_fcoop import RLlibOverCooked_FCOOP
+
+    COOP_ENV_REGISTRY["overcooked"] = RLlibOverCooked_FCOOP
+except Exception as e:
+    COOP_ENV_REGISTRY["overcooked"] = str(e)
+
+try:
+    from marllib.envs.global_reward_env.voltage_fcoop import RLlibVoltageControl_FCOOP
+
+    COOP_ENV_REGISTRY["voltage"] = RLlibVoltageControl_FCOOP
+except Exception as e:
+    COOP_ENV_REGISTRY["voltage"] = str(e)
+
+try:
+    from marllib.envs.global_reward_env.aircombat_fcoop import RLlibCloseAirCombatEnv_FCOOP
+
+    COOP_ENV_REGISTRY["aircombat"] = RLlibCloseAirCombatEnv_FCOOP
+except Exception as e:
+    COOP_ENV_REGISTRY["aircombat"] = str(e)
