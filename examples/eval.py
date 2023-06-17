@@ -299,6 +299,7 @@ if __name__ == "__main__":
     if checkpoint is not None:
         agent.restore(checkpoint)
 
+    state = agent.get_policy("shared_policy").get_initial_state()
 
     # Inference
     obs = env_instance.reset()
@@ -306,12 +307,12 @@ if __name__ == "__main__":
     while not done["__all__"]:
         action_dict = {}
         for agent_id in obs.keys():
-            action = agent.compute_single_action(obs[agent_id], policy_id="shared_policy")
+            action, state, _ = agent.compute_single_action(obs[agent_id], state, policy_id="shared_policy")
             action_dict[agent_id] = action
         
         obs, reward, done, info = env_instance.step(action_dict)
     
-    env.close()
+    env_instance.close()
     ray.shutdown()
     print("Inference finished!")
 	
