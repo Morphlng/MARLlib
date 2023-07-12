@@ -1,18 +1,27 @@
 <div align="center">
 
-<img src=docs/source/images/allenv.gif width=95% />
-
+<img src=docs/source/images/logo1.png width=75% />
 </div>
+
+
 
 <h1 align="center"> MARLlib: A Multi-agent Reinforcement Learning Library </h1>
 
+<div align="center">
+
+<img src=docs/source/images/allenv.gif width=99% />
+
+</div>
+
+&emsp;
+
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)]()
 ![test](https://github.com/Replicable-MARL/MARLlib/workflows/test/badge.svg)
-![coverage](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/coverage.svg)
+![coverage](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/coverage.svg)
 [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/)
 [![GitHub issues](https://img.shields.io/github/issues/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib/issues)
 [![PyPI version](https://badge.fury.io/py/marllib.svg)](https://badge.fury.io/py/marllib)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/sy_dev/marllib.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/marllib.ipynb)
 [![Organization](https://img.shields.io/badge/Organization-ReLER_RL-blue.svg)](https://github.com/Replicable-MARL/MARLlib)
 [![Organization](https://img.shields.io/badge/Organization-PKU_MARL-blue.svg)](https://github.com/Replicable-MARL/MARLlib)
 [![Awesome](https://awesome.re/badge.svg)](https://marllib.readthedocs.io/en/latest/resources/awesome.html)
@@ -23,6 +32,9 @@
 | **March 2023** We are excited to announce that a major update has just been released. For detailed version information, please refer to the [version info](https://github.com/Replicable-MARL/MARLlib/releases/tag/1.0.2).|
 | **May 2023** Exciting news! MARLlib now supports three more tasks: [MATE](https://marllib.readthedocs.io/en/latest/handbook/env.html#mate), [GoBigger](https://marllib.readthedocs.io/en/latest/handbook/env.html#gobigger), [Overcooked-AI](https://marllib.readthedocs.io/en/latest/handbook/env.html#overcooked-ai). Give them a try!|
 | **May 2023 (update)** Supports two more tasks: [MAPDN](https://marllib.readthedocs.io/en/latest/handbook/env.html#power-distribution-networks) and [AirCombat](https://marllib.readthedocs.io/en/latest/handbook/env.html#air-combat). Give them a try!|
+| **June 2023** [OpenAI: Hide and Seek](https://marllib.readthedocs.io/en/latest/handbook/env.html#hide-and-seek) and [SISL](https://marllib.readthedocs.io/en/latest/handbook/env.html#sisl) environments are incorporated into MARLlib.|
+| **June 2023 (update)** latest [MAMuJoCo](https://marllib.readthedocs.io/en/latest/handbook/env.html#gymnasium-mamujoco) maintained by *robotics.farama.org* is available on MARLlib.|
+| **July 2023** MARLlib supports [Grid Search](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/examples/grid_search_usage.py) for finetuning.|
 
 
 **Multi-agent Reinforcement Learning Library ([MARLlib](https://arxiv.org/abs/2210.13708))** is ***a MARL library*** that utilizes [**Ray**](https://github.com/ray-project/ray) and one of its toolkits [**RLlib**](https://github.com/ray-project/ray/tree/master/rllib). It offers a comprehensive platform for developing, training, and testing MARL algorithms across various tasks and environments. 
@@ -46,6 +58,7 @@ mappo.fit(env, model, stop={'timesteps_total': 1000000}, share_policy='group')
 ```
 
 
+
 ## Why MARLlib?
 
 Here we provide a table for the comparison of MARLlib and existing work.
@@ -57,7 +70,7 @@ Here we provide a table for the comparison of MARLlib and existing work.
 | [MAPPO Benchmark](https://github.com/marlbenchmark/on-policy) |       4 cooperative       |      1     |          share + separate        |          MLP + GRU        |         :x:              |
 | [MAlib](https://github.com/sjtu-marl/malib) |  4 self-play  | 10 | share + group + separate | MLP + LSTM | [![Documentation Status](https://readthedocs.org/projects/malib/badge/?version=latest)](https://malib.readthedocs.io/en/latest/?badge=latest)
 |    [EPyMARL](https://github.com/uoe-agents/epymarl)|        4 cooperative      |    9    |        share + separate       |      GRU             |           :x:            |
-|    **[MARLlib](https://github.com/Replicable-MARL/MARLlib)** |       15 **no task mode restriction**     |    18     |   share + group + separate + **customizable**         |         MLP + CNN + GRU + LSTM          |           [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/) |
+|    **[MARLlib](https://github.com/Replicable-MARL/MARLlib)** |       17 **no task mode restriction**     |    18     |   share + group + separate + **customizable**         |         MLP + CNN + GRU + LSTM          |           [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/) |
 
 |   Library   | Github Stars  | Documentation | Issues Open | Activity | Last Update
 |:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
@@ -121,10 +134,9 @@ $ pip install -r requirements.txt
 Please follow [this guide](https://marllib.readthedocs.io/en/latest/handbook/env.html).
 
 > __Note__:
-> We recommend always keeping the gym version at 0.21.0.
-
+> We recommend the gym version between 0.20.0~0.22.0.
 ```bash
-$ pip install gym==0.21.0
+pip install "gym>=0.20.0,<0.22.0"
 ```
 
 #### 3. install patches (basic)
@@ -186,6 +198,7 @@ Most of the popular environments in MARL research are supported by MARLlib:
 | **[LBF](https://marllib.readthedocs.io/en/latest/handbook/env.html#lbf)**  | cooperative + collaborative | Both | Discrete | 1D  |
 | **[RWARE](https://marllib.readthedocs.io/en/latest/handbook/env.html#rware)**  | cooperative | Partial | Discrete | 1D  |
 | **[MPE](https://marllib.readthedocs.io/en/latest/handbook/env.html#mpe)**  | cooperative + collaborative + mixed | Both | Both | 1D  |
+| **[SISL](https://marllib.readthedocs.io/en/latest/handbook/env.html#sisl)** | cooperative + collaborative | Full | Both | 1D |
 | **[SMAC](https://marllib.readthedocs.io/en/latest/handbook/env.html#smac)**  | cooperative | Partial | Discrete | 1D |
 | **[MetaDrive](https://marllib.readthedocs.io/en/latest/handbook/env.html#metadrive)**  | collaborative | Partial | Continuous | 1D |
 | **[MAgent](https://marllib.readthedocs.io/en/latest/handbook/env.html#magent)** | collaborative + mixed | Partial | Discrete | 2D |
@@ -198,6 +211,7 @@ Most of the popular environments in MARL research are supported by MARLlib:
 | **[Overcooked-AI](https://marllib.readthedocs.io/en/latest/handbook/env.html#overcooked-ai)** | cooperative | Full | Discrete | 1D |
 | **[PDN](https://marllib.readthedocs.io/en/latest/handbook/env.html#power-distribution-networks)** | cooperative | Partial | Continuous | 1D |
 | **[AirCombat](https://marllib.readthedocs.io/en/latest/handbook/env.html#air-combat)** | cooperative + mixed | Partial | MultiDiscrete | 1D |
+| **[HideAndSeek](https://marllib.readthedocs.io/en/latest/handbook/env.html#hide-and-seek)** | competitive + mixed | Partial | MultiDiscrete | 1D |
 
 Each environment has a readme file, standing as the instruction for this task, including env settings, installation, and
 important notes.
@@ -299,8 +313,8 @@ mappo.fit(
 mappo.render(
   env, model, 
   local_mode=True, 
-  restore_path={'params_path': "checkpoint_000010/params.json",
-                'model_path': "checkpoint_000010/checkpoint-10"}
+  restore_path={'params_path': "checkpoint/params.json",
+                'model_path': "checkpoint/checkpoint-10"}
 )
 ```
 </details>
@@ -327,21 +341,25 @@ For a list of all the existing results, you can visit [this link](https://github
 
 MARLlib provides some practical examples for you to refer to.
 
-- [Detailed API usage](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/examples/api_basic_usage.py): show how to use MARLlib api in
+- [Detailed API usage](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/examples/api_basic_usage.py): show how to use MARLlib api in
   detail, e.g. cmd + api combined running.
-- [Policy sharing cutomization](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/examples/customize_policy_sharing.py):
+- [Policy sharing cutomization](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/examples/customize_policy_sharing.py):
   define your group policy-sharing strategy as you like based on current tasks.
-- [Loading model and rendering](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/examples/load_and_render_model.py):
+- [Loading model](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/examples/load_model.py):
+  load the pre-trained model and keep training.
+- [Loading model and rendering](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/examples/load_and_render_model.py):
   render the environment based on the pre-trained model.
-- [Incorporating new environment](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/examples/add_new_env.py):
+- [Incorporating new environment](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/examples/add_new_env.py):
   add your new environment following MARLlib's env-agent interaction interface.
-- [Incorporating new algorithm](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/examples/add_new_algorithm.py):
+- [Incorporating new algorithm](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/examples/add_new_algorithm.py):
   add your new algorithm following MARLlib learning pipeline.
-
+- [Parallelized finetuning](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/examples/grid_search_usage.py):
+  fintune your policy/model performance with `ray.tune`.
+  
 ## Tutorials
 
 Try MPE + MAPPO examples on Google Colaboratory!
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/sy_dev/marllib.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/marllib.ipynb)
 More tutorial documentations are available [here](https://marllib.readthedocs.io/).
 
 ## Awesome List
@@ -365,7 +383,7 @@ The roadmap to the future release is available in [ROADMAP.md](https://github.co
 ## Contributing
 
 We are a small team on multi-agent reinforcement learning, and we will take all the help we can get! 
-If you would like to get involved, here is information on [contribution guidelines and how to test the code locally](https://github.com/Replicable-MARL/MARLlib/blob/sy_dev/CONTRIBUTING.md).
+If you would like to get involved, here is information on [contribution guidelines and how to test the code locally](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/CONTRIBUTING.md).
 
 You can contribute in multiple ways, e.g., reporting bugs, writing or translating documentation, reviewing or refactoring code, requesting or implementing new features, etc.
 

@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import ray
+import gym
 from gym.spaces import Dict as GymDict, Discrete, Tuple
 from ray.tune import register_env
 from ray import tune
@@ -47,6 +48,31 @@ def run_vd(exp_info, env, model, stop=None):
     env_info["agent_name_ls"] = agent_name_ls
     env.close()
 
+    ###################
+    ### space check ###
+    ###################
+
+    action_discrete = isinstance(env_info["space_act"], gym.spaces.Discrete)
+    action_multi_discrete = isinstance(env_info["space_act"], gym.spaces.MultiDiscrete)
+
+    if action_discrete or action_multi_discrete:
+        if exp_info["algorithm"] in ["facmac"]:
+            raise ValueError(
+                "Algo -facmac- only supports continuous action space,  Env {} requires Discrete action space".format(
+                    exp_info["env"]))
+        if action_multi_discrete:
+            if exp_info["algorithm"] in ["vdn", "qmix"]:
+                raise ValueError(
+                    "Algo -{}- only supports discrete action space,  Env -{}- requires MultiDiscrete action space".format(
+                        env_info["algorithm"],
+                        exp_info["env"]))
+    else:  # continuous
+        if exp_info["algorithm"] in ["coma", "vdn", "qmix"]:
+            raise ValueError(
+                "Algo -{}- only supports discrete action space, Env -{}- requires continuous action space".format(
+                    env_info["algorithm"],
+                    exp_info["env"]))
+
     ######################
     ### policy sharing ###
     ######################
@@ -54,6 +80,7 @@ def run_vd(exp_info, env, model, stop=None):
     # grab the policy mapping info here to use in grouping environment
     policy_mapping_info = env_info["policy_mapping_info"]
 
+    shared_policy_name = "default_policy" if exp_info["agent_level_batch_update"] else "shared_policy"
     if "all_scenario" in policy_mapping_info:
         policy_mapping_info = policy_mapping_info["all_scenario"]
     else:
@@ -108,9 +135,9 @@ def run_vd(exp_info, env, model, stop=None):
             if not policy_mapping_info["all_agents_one_policy"]:
                 raise ValueError("in {}, policy can not be shared".format(map_name))
 
-            policies = {"shared_policy"}
+            policies = {shared_policy_name}
             policy_mapping_fn = (
-                lambda agent_id, episode, **kwargs: "shared_policy")
+                lambda agent_id, episode, **kwargs: shared_policy_name)
 
         elif exp_info["share_policy"] == "group":
             groups = policy_mapping_info["team_prefix"]
@@ -118,9 +145,9 @@ def run_vd(exp_info, env, model, stop=None):
                 if not policy_mapping_info["all_agents_one_policy"]:
                     raise ValueError(
                         "in {}, policy can not be shared, change it to 1. group 2. individual".format(map_name))
-                policies = {"shared_policy"}
+                policies = {shared_policy_name}
                 policy_mapping_fn = (
-                    lambda agent_id, episode, **kwargs: "shared_policy")
+                    lambda agent_id, episode, **kwargs: shared_policy_name)
             else:
                 policies = {
                     "policy_{}".format(i): (None, env_info["space_obs"], env_info["space_act"], {}) for i in

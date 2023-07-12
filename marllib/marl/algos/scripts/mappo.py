@@ -114,6 +114,10 @@ def run_mappo(model: Any, exp: Dict, run: Dict, env: Dict,
     if entropy_coeff is None:
         entropy_coeff = tune.uniform(1e-3, 5e-2)
         tuning = True
+    vf_loss_coeff = _param["vf_loss_coeff"]
+    entropy_coeff = _param["entropy_coeff"]
+    back_up_config = merge_dicts(exp, env)
+    back_up_config.pop("algo_args")  # clean for grid_search
 
     config = {
         "batch_mode": batch_mode,
@@ -132,7 +136,7 @@ def run_mappo(model: Any, exp: Dict, run: Dict, env: Dict,
         "vf_clip_param": vf_clip_param,
         "model": {
             "custom_model": "Centralized_Critic_Model",
-            "custom_model_config": merge_dicts(exp, env),
+            "custom_model_config": back_up_config,
         },
     }
     config.update(run)

@@ -23,11 +23,22 @@
 ENV_REGISTRY = {}
 
 try:
+    from marllib.envs.base_env.gymnasium_mamujoco import RLlibGymnasiumRoboticsMAMujoco
+    ENV_REGISTRY["gymnasium_mamujoco"] = RLlibGymnasiumRoboticsMAMujoco
+
+except Exception as e:
+    ENV_REGISTRY["gymnasium_mamujoco"] = str(e)
+
+
+try:
     from marllib.envs.base_env.mpe import RLlibMPE
 
     ENV_REGISTRY["mpe"] = RLlibMPE
 except Exception as e:
     ENV_REGISTRY["mpe"] = str(e)
+
+
+
 
 try:
     from marllib.envs.base_env.mamujoco import RLlibMAMujoco
@@ -35,6 +46,9 @@ try:
     ENV_REGISTRY["mamujoco"] = RLlibMAMujoco
 except Exception as e:
     ENV_REGISTRY["mamujoco"] = str(e)
+
+
+
 
 try:
     from marllib.envs.base_env.smac import RLlibSMAC
@@ -131,3 +145,19 @@ try:
     ENV_REGISTRY["aircombat"] = RLlibCloseAirCombatEnv
 except Exception as e:
     ENV_REGISTRY["aircombat"] = str(e)
+
+
+try:
+    from marllib.envs.base_env.hns import RLlibHideAndSeek
+
+    ENV_REGISTRY["hns"] = RLlibHideAndSeek
+except Exception as e:
+    ENV_REGISTRY["hns"] = str(e)
+
+
+try:
+    from marllib.envs.base_env.sisl import RLlibSISL
+
+    ENV_REGISTRY["sisl"] = RLlibSISL
+except Exception as e:
+    ENV_REGISTRY["sisl"] = str(e)

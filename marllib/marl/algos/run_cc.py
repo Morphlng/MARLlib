@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import ray
+import gym
 from ray import tune
 from ray.rllib.utils.framework import try_import_tf, try_import_torch
 from marllib.marl.algos.scripts import POlICY_REGISTRY
@@ -34,23 +35,25 @@ def restore_config_update(exp_info, run_config, stop_config):
         restore_config = None
     else:
         restore_config = exp_info['restore_path']
-        render_config = {
-            "evaluation_interval": 1,
-            "evaluation_num_episodes": 100,
-            "evaluation_num_workers": 1,
-            "evaluation_config": {
-                "record_env": False,
-                "render_env": True,
+        if 'render' in exp_info['restore_path']:
+            render_config = {
+                "evaluation_interval": 1,
+                "evaluation_num_episodes": 100,
+                "evaluation_num_workers": 1,
+                "evaluation_config": {
+                    "record_env": False,
+                    "render_env": True,
+                }
             }
-        }
 
-        run_config = recursive_dict_update(run_config, render_config)
+            run_config = recursive_dict_update(run_config, render_config)
 
-        render_stop_config = {
-            "training_iteration": 1,
-        }
+            render_stop_config = {
+                "training_iteration": 1,
+            }
 
-        stop_config = recursive_dict_update(stop_config, render_stop_config)
+            stop_config = recursive_dict_update(stop_config, render_stop_config)
+
 
     return exp_info, run_config, stop_config, restore_config
 
@@ -69,6 +72,23 @@ def run_cc(exp_info, env, model, stop=None):
     env.close()
 
     ######################
+    ### space checking ###
+    ######################
+
+    action_discrete = isinstance(env_info["space_act"], gym.spaces.Discrete) or isinstance(env_info["space_act"],
+                                                                                           gym.spaces.MultiDiscrete)
+    if action_discrete:
+        if exp_info["algorithm"] in ["maddpg"]:
+            raise ValueError(
+                "Algo -maddpg- only supports continuous action space, Env -{}- requires Discrete action space".format(
+                    exp_info["env"]))
+    else:  # continuous
+        if exp_info["algorithm"] in ["coma"]:
+            raise ValueError(
+                "Algo -coma- only supports discrete action space, Env -{}- requires continuous action space".format(
+                    exp_info["env"]))
+
+    ######################
     ### policy sharing ###
     ######################
 
@@ -79,13 +99,15 @@ def run_cc(exp_info, env, model, stop=None):
     else:
         policy_mapping_info = policy_mapping_info[map_name]
 
+    # whether to agent level batch update when shared model parameter:
+    # True -> default_policy | False -> shared_policy
+    shared_policy_name = "default_policy" if exp_info["agent_level_batch_update"] else "shared_policy"
     if exp_info["share_policy"] == "all":
         if not policy_mapping_info["all_agents_one_policy"]:
             raise ValueError("in {}, policy can not be shared, change it to 1. group 2. individual".format(map_name))
-
-        policies = {"av"}
+        policies = {shared_policy_name}
         policy_mapping_fn = (
-            lambda agent_id, episode, **kwargs: "av")
+            lambda agent_id, episode, **kwargs: shared_policy_name)
 
     elif exp_info["share_policy"] == "group":
         groups = policy_mapping_info["team_prefix"]
@@ -95,9 +117,9 @@ def run_cc(exp_info, env, model, stop=None):
                 raise ValueError(
                     "in {}, policy can not be shared, change it to 1. group 2. individual".format(map_name))
 
-            policies = {"shared_policy"}
+            policies = {shared_policy_name}
             policy_mapping_fn = (
-                lambda agent_id, episode, **kwargs: "shared_policy")
+                lambda agent_id, episode, **kwargs: shared_policy_name)
 
         else:
             policies = {

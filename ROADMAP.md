@@ -8,7 +8,7 @@ This list describes the planned features including breaking changes.
 
 ## Roadmap to v2.0.0
 - [x] test suits + coverage
-- [ ] support Windows
+- [ ] support Windows OS / MacOS
 - [ ] manually inference, refer to issue: https://github.com/Replicable-MARL/MARLlib/issues/86#issuecomment-1468188682
 - [ ] new environments
   - [x] MATE: https://github.com/UnrealTracking/mate
@@ -16,6 +16,9 @@ This list describes the planned features including breaking changes.
   - [x] Voltage Control: https://github.com/Future-Power-Networks/MAPDN
   - [x] Overcooked: https://github.com/HumanCompatibleAI/overcooked_ai
   - [x] CloseAirCombat: https://github.com/liuqh16/CloseAirCombat
-  - [ ] HideAndSeek: https://github.com/jiayu-ch15/Variational-Automatic-Curriculum-Learning#3-train-hide-and-seek
+  - [x] HideAndSeek: https://github.com/jiayu-ch15/Variational-Automatic-Curriculum-Learning#3-train-hide-and-seek
+  - [x] SISL: https://github.com/sisl/MADRL 
+  - [ ] Melting Pot: https://github.com/deepmind/meltingpot
+
 - [ ] support Transformers
 - [x] support MultiDiscrete action space

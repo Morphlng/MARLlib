@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import ray
+import gym
 from ray import tune
 from ray.rllib.utils.framework import try_import_tf, try_import_torch
 from ray.rllib.policy.policy import PolicySpec
@@ -46,6 +47,23 @@ def run_il(exp_info, env, model, stop=None):
     env.close()
 
     ######################
+    ### space checking ###
+    ######################
+
+    action_discrete = isinstance(env_info["space_act"], gym.spaces.Discrete) or isinstance(env_info["space_act"],
+                                                                                           gym.spaces.MultiDiscrete)
+    if action_discrete:
+        if exp_info["algorithm"] in ["iddpg"]:
+            raise ValueError(
+                "Algo -iddpg- only supports continuous action space, Env -{}- requires Discrete action space".format(
+                    exp_info["env"]))
+    else:  # continuous
+        if exp_info["algorithm"] in ["iql"]:
+            raise ValueError(
+                "Algo -iql- only supports discrete action space, Env -{}- requires continuous action space".format(
+                    exp_info["env"]))
+
+    ######################
     ### policy sharing ###
     ######################
 
@@ -56,13 +74,14 @@ def run_il(exp_info, env, model, stop=None):
     else:
         policy_mapping_info = policy_mapping_info[map_name]
 
+    shared_policy_name = "default_policy" if exp_info["agent_level_batch_update"] else "shared_policy"
     if exp_info["share_policy"] == "all":
         if not policy_mapping_info["all_agents_one_policy"]:
             raise ValueError("in {}, policy can not be shared".format(map_name))
 
-        policies = {"shared_policy"}
+        policies = {shared_policy_name}
         policy_mapping_fn = (
-            lambda agent_id, episode, **kwargs: "shared_policy")
+            lambda agent_id, episode, **kwargs: shared_policy_name)
 
     elif exp_info["share_policy"] == "group":
         groups = policy_mapping_info["team_prefix"]
