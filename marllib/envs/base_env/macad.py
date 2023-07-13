@@ -1,14 +1,19 @@
 """
     This file is a wrapper for Macad-Gym. 
 """
-from ray.rllib.env.multi_agent_env import MultiAgentEnv
-from gym.spaces import Dict as GymDict, Tuple as GymTuple, Box
-from macad_gym.envs import MultiCarlaEnv, Strike, Town01Sim, Town03Sim, Town05Sim, Town11Sim
 from copy import deepcopy
+
 import numpy as np
+from gym.spaces import Box
+from gym.spaces import Dict as GymDict
+from gym.spaces import Tuple as GymTuple
+from macad_gym.envs import (MultiCarlaEnv, Navigation, Strike, Town01Sim,
+                            Town03Sim, Town05Sim, Town11Sim)
+from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 env_name_mapping = {
     "Strike": Strike,
+    "Navigation": Navigation,
     "Town01": Town01Sim,
     "Town03": Town03Sim,
     "Town05": Town05Sim,
@@ -48,9 +53,10 @@ class RllibMacad(MultiAgentEnv):
         if self.use_only_semantic:
             assert self.env_config["env"]["send_measurements"], "use_only_semantic can only be True when send_measurement is True"
 
-        self.agents = [actor_id for actor_id in self.env_config["actors"] if actor_id not in self.env._ignore_actor_ids and actor_id != "ego"]
+        self.agents = [actor_id for actor_id in self.env_config["actors"]
+                       if actor_id not in self.env._ignore_actor_ids and actor_id != "ego"]
         self.num_agents = len(self.agents)
-        
+
         # Note1: obs is the partial observation of the agent, state is the global state
         # Note2: if enable send_measurements, the obs will be a Tuple of (obs, semantic_info)
         actor_id = next(iter(self.env_config["actors"].keys()))
@@ -89,7 +95,7 @@ class RllibMacad(MultiAgentEnv):
         """If normal reset raise an exception, try hard reset first"""
         if self.env:
             self.env.close()
-        
+
         env_class = env_name_mapping[self.map_name]
         if env_class == MultiCarlaEnv:
             self.env = MultiCarlaEnv(self.env_config)
@@ -99,7 +105,7 @@ class RllibMacad(MultiAgentEnv):
 
     def reset(self):
         """Reset the environment and return the initial observation."""
-        while True:
+        for _ in range(3):
             try:
                 origin_obs = self.env.reset()
                 break
@@ -124,10 +130,10 @@ class RllibMacad(MultiAgentEnv):
             print("Exception raised when step: {}".format(e))
             print("Step failed, set done to True and try hard reset on next reset")
             # Pseudo return
-            obs, reward, done, info = self._process_return(self.env.observation_space.sample())
+            origin_obs, r, d, i = (self.env.observation_space.sample(), None, None, None)
+            self.env.close()
             self.env = None
-            return obs, reward, done, info
-            
+
         obs, reward, done, info = self._process_return(origin_obs, r, d, i)
         return obs, reward, done, info
 
@@ -152,14 +158,14 @@ class RllibMacad(MultiAgentEnv):
                         "obs": o[actor_id][1],
                         "state": o[actor_id][0]
                     }
-                
+
                 reward[actor_id] = r[actor_id] if r is not None else 0
                 done[actor_id] = d[actor_id] if d is not None else True
                 info[actor_id] = i[actor_id] if i is not None else None
-        
+
         done["__all__"] = d["__all__"] if d is not None else True
         return obs, reward, done, info
-        
+
     def close(self):
         self.env.close()
 

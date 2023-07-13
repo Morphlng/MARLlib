@@ -190,8 +190,6 @@ if __name__ == "__main__":
         'model_path': '/home/morphlng/ray_results/Town01_ckpt/Town01/checkpoint_000130/checkpoint-130',
         'params_path': '/home/morphlng/ray_results/Town01_ckpt/Town01/params.json'})
 
-    state = agent.get_policy("shared_policy").get_initial_state()
-
     # prepare env
     env = marl.make_env(environment_name="macad", map_name="Town01")
     env_instance, env_info = env
@@ -199,11 +197,12 @@ if __name__ == "__main__":
     # Inference
     obs = env_instance.reset()
     done = {"__all__": False}
+    states = {actor_id: agent.get_policy("shared_policy").get_initial_state() for actor_id in obs}
+
     while not done["__all__"]:
         action_dict = {}
         for agent_id in obs.keys():
-            action, state, _ = agent.compute_single_action(obs[agent_id], state, policy_id="shared_policy")
-            action_dict[agent_id] = action
+            action_dict[agent_id], states[agent_id], _ = agent.compute_single_action(obs[agent_id], states[agent_id], policy_id="shared_policy", explore=False)
         
         obs, reward, done, info = env_instance.step(action_dict)
     
