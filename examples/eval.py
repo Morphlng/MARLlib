@@ -290,14 +290,14 @@ if __name__ == '__main__':
 
     env = RllibMacad(config_dict["env_args"])
     obs = env.reset()
-    state = agent.get_policy("shared_policy").get_initial_state()
+    states = {actor_id: agent.get_policy("shared_policy").get_initial_state() for actor_id in obs}
 
     done = {"__all__": False}
     while not done["__all__"]:
         action_dict = {}
 
         for actor in obs:
-            action_dict[actor], state, _ = agent.compute_single_action(obs[actor], state, policy_id="shared_policy")
+            action_dict[actor], states[actor], _ = agent.compute_single_action(obs[actor], states[actor], policy_id="shared_policy", explore=False)
 
         obs, reward, done, info = env.step(action_dict)
 
