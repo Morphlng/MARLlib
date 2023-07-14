@@ -1,6 +1,7 @@
 import importlib
 import inspect
 import json
+import logging
 import os
 
 import ray
@@ -174,7 +175,7 @@ def load_model(model_config: dict):
         raise e
 
     if not ray.is_initialized():
-        ray.init()
+        ray.init(include_dashboard=False, configure_logging=True, logging_level=logging.ERROR, log_to_driver=False)
 
     update_config(params)
     trainer = ALGO_DICT[model_config.get("algo", find_key(params, "algorithm"))][1](params)
@@ -187,8 +188,12 @@ ALGO_DICT = form_algo_dict()
 
 if __name__ == "__main__":
     agent = load_model({
-        'model_path': '/home/morphlng/ray_results/Town01_ckpt/Town01/checkpoint_000130/checkpoint-130',
-        'params_path': '/home/morphlng/ray_results/Town01_ckpt/Town01/params.json'})
+        'model_path': '/home/morphlng/ray_results/Town01_no_type/checkpoint_000455/checkpoint-455',
+        'params_path': '/home/morphlng/ray_results/Town01_no_type/params.json'})
+    
+    # This function (policy_map_fn) takes in actor_id (str), episode (int), returns the policy_id (str)
+    # Most of the time, episode can be just 1
+    pmap = find_key(agent.config, "policy_mapping_fn")
 
     # prepare env
     env = marl.make_env(environment_name="macad", map_name="Town01")
@@ -202,7 +207,7 @@ if __name__ == "__main__":
     while not done["__all__"]:
         action_dict = {}
         for agent_id in obs.keys():
-            action_dict[agent_id], states[agent_id], _ = agent.compute_single_action(obs[agent_id], states[agent_id], policy_id="shared_policy", explore=False)
+            action_dict[agent_id], states[agent_id], _ = agent.compute_single_action(obs[agent_id], states[agent_id], policy_id=pmap(agent_id, 1), explore=False)
         
         obs, reward, done, info = env_instance.step(action_dict)
     

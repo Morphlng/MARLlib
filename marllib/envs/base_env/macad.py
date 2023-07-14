@@ -109,6 +109,8 @@ class RllibMacad(MultiAgentEnv):
             try:
                 origin_obs = self.env.reset()
                 break
+            except KeyboardInterrupt as e:
+                raise e
             except Exception as e:
                 print("Exception raised when reset: {}".format(e))
                 print("Reset failed, try hard reset")
@@ -126,6 +128,8 @@ class RllibMacad(MultiAgentEnv):
 
         try:
             origin_obs, r, d, i = self.env.step(action_dict)
+        except KeyboardInterrupt as e:
+            raise e
         except Exception as e:
             print("Exception raised when step: {}".format(e))
             print("Step failed, set done to True and try hard reset on next reset")
