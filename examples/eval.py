@@ -7,6 +7,7 @@ import os
 import ray
 from ray import tune
 from ray.rllib.models import ModelCatalog
+from ray.rllib.agents.trainer import Trainer
 
 from marllib import marl
 
@@ -157,7 +158,7 @@ def update_config(config: dict):
     })
 
 
-def load_model(model_config: dict):
+def load_model(model_config: dict) -> "tuple[Trainer, function]":
     """load model from given path
 
     Args:
@@ -180,20 +181,21 @@ def load_model(model_config: dict):
     update_config(params)
     trainer = ALGO_DICT[model_config.get("algo", find_key(params, "algorithm"))][1](params)
     trainer.restore(model_config['model_path'])
-    return trainer
+
+    # This function (policy_map_fn) takes in actor_id (str), episode (int), returns the policy_id (str)
+    # Most of the time, episode can be just 1
+    pmap = find_key(trainer.config, "policy_mapping_fn")
+
+    return trainer, pmap
 
 
 ALGO_DICT = form_algo_dict()
 
 
 if __name__ == "__main__":
-    agent = load_model({
-        'model_path': '/home/morphlng/ray_results/Town01_no_type/checkpoint_000455/checkpoint-455',
+    agent, pmap = load_model({
+        'model_path': '/home/morphlng/ray_results/Town01_no_type/checkpoint_000425/checkpoint-425',
         'params_path': '/home/morphlng/ray_results/Town01_no_type/params.json'})
-    
-    # This function (policy_map_fn) takes in actor_id (str), episode (int), returns the policy_id (str)
-    # Most of the time, episode can be just 1
-    pmap = find_key(agent.config, "policy_mapping_fn")
 
     # prepare env
     env = marl.make_env(environment_name="macad", map_name="Town01")
@@ -202,7 +204,7 @@ if __name__ == "__main__":
     # Inference
     obs = env_instance.reset()
     done = {"__all__": False}
-    states = {actor_id: agent.get_policy("shared_policy").get_initial_state() for actor_id in obs}
+    states = {actor_id: agent.get_policy(pmap(actor_id, 1)).get_initial_state() for actor_id in obs}
 
     while not done["__all__"]:
         action_dict = {}
