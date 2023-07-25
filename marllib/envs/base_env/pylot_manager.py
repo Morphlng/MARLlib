@@ -19,11 +19,12 @@ class PylotManager:
         self.ue_port = args.ue_port
         self.redis_host = args.redis_host
         self.redis_port = args.redis_port
+        self.goal_location = '-2.128490,317.256927,0.556630'
         
         self.conn = redis.Redis(host=self.redis_host, port=self.redis_port, decode_responses=True)
 
         # Town01 map
-        self.START_PYLOT_COMMAND = ['docker', 'exec', '-it', 'pylot', 'bash', '-c', f'source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=-2.128490,317.256927,0.556630']
+        self.START_PYLOT_BASE_COMMAND = ['docker', 'exec', '-it', 'pylot', 'bash', '-c', f'source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port}']
         
         # Town03 map
         # self.START_PYLOT_COMMAND = ['docker', 'exec', '-it', 'pylot', 'bash', '-c', f'source /home/erdos/.bashrc;python3 pylot.py --flagfile=configs/scenarios/person_avoidance_frenet.conf --simulator_host={self.ue_host} --simulator_port={self.ue_port} --goal_location=217.043533,62.721680,0.773467']
@@ -59,10 +60,16 @@ class PylotManager:
                     self.conn.set('START_EGO', '0')
                     print("pylot killed")
 
+                    start_pylot_command = self.START_PYLOT_BASE_COMMAND.copy()
+                    goal_loc = self.conn.get('pylot_end')
+                    if goal_loc is not None:
+                        self.goal_location = goal_loc
+                        start_pylot_command[-1] += f' --goal_location={self.goal_location}'
+                    
                     # Start new pylot process
                     time.sleep(1)
                     print('start pylot')
-                    pylot_process = subprocess.Popen(self.START_PYLOT_COMMAND, shell=False, preexec_fn=os.setsid)
+                    pylot_process = subprocess.Popen(start_pylot_command, shell=False, preexec_fn=os.setsid)
                     print('pylot started')
                 
                 if pylot_process is not None:
