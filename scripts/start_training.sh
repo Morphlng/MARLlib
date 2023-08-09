@@ -15,7 +15,9 @@ run_in_new_screen () {
     screen -dmS "$1" bash -c "$2"
 }
 
+current_time=$(date +"%Y-%m-%d_%H:%M:%S")
+
 # Run the Python scripts in separate screens
 run_in_new_screen "carla_manager" "python ${HOME}/code/MARLlib/marllib/envs/base_env/carla_manager.py"
 run_in_new_screen "pylot_manager" "python ${HOME}/code/MARLlib/marllib/envs/base_env/pylot_manager.py"
-run_in_new_screen "main" "python ${HOME}/code/MARLlib/marllib/main.py"
+run_in_new_screen "main" "python ${HOME}/code/MARLlib/marllib/main.py > ~/${current_time}_train.log 2>&1"
