@@ -21,7 +21,7 @@
 [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/)
 [![GitHub issues](https://img.shields.io/github/issues/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib/issues)
 [![PyPI version](https://badge.fury.io/py/marllib.svg)](https://badge.fury.io/py/marllib)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/marllib.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/master/marllib.ipynb)
 [![Organization](https://img.shields.io/badge/Organization-ReLER_RL-blue.svg)](https://github.com/Replicable-MARL/MARLlib)
 [![Organization](https://img.shields.io/badge/Organization-PKU_MARL-blue.svg)](https://github.com/Replicable-MARL/MARLlib)
 [![Awesome](https://awesome.re/badge.svg)](https://marllib.readthedocs.io/en/latest/resources/awesome.html)
@@ -134,9 +134,9 @@ $ pip install -r requirements.txt
 Please follow [this guide](https://marllib.readthedocs.io/en/latest/handbook/env.html).
 
 > __Note__:
-> We recommend the gym version between 0.20.0~0.22.0.
+> We recommend the gym version around 0.20.0.
 ```bash
-pip install "gym>=0.20.0,<0.22.0"
+pip install "gym==0.20.0"
 ```
 
 #### 3. install patches (basic)
@@ -144,7 +144,7 @@ pip install "gym>=0.20.0,<0.22.0"
 Fix bugs of RLlib using patches by running the following command:
 
 ```bash
-$ cd /Path/To/MARLlib/marl/patch
+$ cd /Path/To/MARLlib/marllib/patch
 $ python add_patch.py -y
 ```
 
@@ -154,6 +154,10 @@ $ python add_patch.py -y
 $ pip install --upgrade pip
 $ pip install marllib
 ```
+
+### Docker-based usage
+
+We provide a Dockerfile for building the MARLlib docker image in `MARLlib/docker/Dockerfile` and a devcontainer setup in `MARLlib/.devcontainer` folder. If you use the devcontainer, one thing to note is that you may need to customise certain arguments in `runArgs`  of `devcontainer.json` according to your hardware, for example the `--shm-size` argument.
 
 ## Getting started
 
@@ -359,7 +363,7 @@ MARLlib provides some practical examples for you to refer to.
 ## Tutorials
 
 Try MPE + MAPPO examples on Google Colaboratory!
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/marllib.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Replicable-MARL/MARLlib/blob/master/marllib.ipynb)
 More tutorial documentations are available [here](https://marllib.readthedocs.io/).
 
 ## Awesome List
