@@ -8,10 +8,11 @@ from gym.spaces import Box
 from gym.spaces import Dict as GymDict
 from gym.spaces import Tuple as GymTuple
 from macad_gym.envs import (MultiCarlaEnv, Navigation, Strike, Town01Sim,
-                            Town03Sim, Town05Sim, Town11Sim)
+                            Town03Sim, Town05Sim, Town11Sim, HomoNcomIndePOIntrxMASS3CTWN3)
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 env_name_mapping = {
+    "Homo": HomoNcomIndePOIntrxMASS3CTWN3,
     "Strike": Strike,
     "Navigation": Navigation,
     "Town01": Town01Sim,
