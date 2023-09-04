@@ -108,6 +108,7 @@ if __name__ == "__main__":
     # utils
     do_link("rllib/utils/exploration/ornstein_uhlenbeck_noise.py", force=args.yes,
             local_path="./rllib/utils/exploration/ornstein_uhlenbeck_noise.py", packagent=ray)
+    do_link("_private/resource_spec.py", force=args.yes, local_path="./_private/resource_spec.py", packagent=ray)
 
     if args.pommerman:
         import pommerman
