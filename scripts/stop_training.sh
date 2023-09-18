@@ -10,4 +10,4 @@ terminate_screen "carla_manager"
 terminate_screen "pylot_manager"
 terminate_screen "main"
 
-docker exec -it pylot bash -c "ps -ef | grep configs/ | awk '{print \$2}' | xargs -r kill -9"
+docker exec -it pylot bash -c "ps -ef | grep configs/ | awk '{print \$2}' | xargs -r kill -9" > /dev/null 2>&1
