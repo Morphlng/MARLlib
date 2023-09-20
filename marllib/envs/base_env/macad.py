@@ -1,7 +1,7 @@
 '''
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-09-12 17:28:26
+LastEditTime: 2023-09-20 14:06:38
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: \MARLlib\marllib\envs\base_env\macad.py
@@ -123,7 +123,7 @@ class RllibMacad(MultiAgentEnv):
         # We add this only to update the observation
         # This action will not take effect
         if "ego" in self.env_config["actors"]:
-            action_dict["ego"] = 0 if self.env.env_action.is_discrete() else (0, 0)
+            action_dict["ego"] = self.env._agent_actions["ego"].get_stop_action()
 
         try:
             origin_obs, r, d, i = self.env.step(action_dict)
