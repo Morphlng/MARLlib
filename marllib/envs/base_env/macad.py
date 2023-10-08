@@ -1,7 +1,7 @@
 '''
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-09-20 14:06:38
+LastEditTime: 2023-10-08 11:06:15
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: \MARLlib\marllib\envs\base_env\macad.py
@@ -43,7 +43,7 @@ policy_mapping_dict = {
 
 
 class RllibMacad(MultiAgentEnv):
-    def __init__(self, env_config):
+    def __init__(self, env_config: dict):
         config = deepcopy(env_config)
         self.map_name = config.get("map_name", "default")
         self.use_only_semantic = config.get("use_only_semantic", False)
@@ -119,7 +119,7 @@ class RllibMacad(MultiAgentEnv):
         obs, _, _, _ = self._process_return(origin_obs)
         return obs
 
-    def step(self, action_dict):
+    def step(self, action_dict: dict):
         # We add this only to update the observation
         # This action will not take effect
         if "ego" in self.env_config["actors"]:
@@ -169,7 +169,7 @@ class RllibMacad(MultiAgentEnv):
         self.env.close()
 
     def get_env_info(self):
-        scenario_config = self.env._scenario_config
+        scenario_config = self.env.scenarios.scenario_config
 
         env_info = {
             "space_obs": self.observation_space,
