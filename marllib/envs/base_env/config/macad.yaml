@@ -4,6 +4,7 @@ env_args:
   map_name: "Town01" # | "default" | "Homo" | "Town01" | "Town03" | "Town05" | "Town11"
   use_only_semantic: true
   use_only_camera: false
+  pad_action_space: false
 
 # Custom scenario support is currently removed
 
