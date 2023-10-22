@@ -9,18 +9,12 @@ terminate_screen () {
 terminate_screen_thoroughly() {
     # Send SIGTERM to gracefully terminate processes
     screen -S "$1" -X stuff "^C"
-    sleep 2  # Give processes some time to terminate gracefully
 
-    # If processes are still running, send SIGKILL
-    for pid in $(pgrep -f "$1"); do
-        # Kill the process and its child processes
-        pkill -TERM -P $pid
-        sleep 1  # Give processes some time to terminate gracefully
-        pkill -KILL -P $pid
-    done
+    # Give processes some time to terminate gracefully
+    sleep 1
 
     # Finally, terminate the screen session
-    screen -S "$1" -X quit
+    terminate_screen "$1"
 }
 
 # Terminate the Python scripts running in screens
