@@ -5,6 +5,7 @@ env_args:
   use_only_semantic: true
   use_only_camera: false
   pad_action_space: false
+  concat_action_space: false
 
 # Custom scenario support is currently removed
 

@@ -1,7 +1,7 @@
 '''
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-10-21 16:33:36
+LastEditTime: 2023-10-24 21:57:41
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: \MARLlib\marllib\envs\base_env\macad.py
@@ -13,14 +13,15 @@ from copy import deepcopy
 import numpy as np
 from gym.spaces import Box, Dict
 from macad_gym.envs import *
-from macad_gym.misc.experiment import ActionPaddingWrapper
+from macad_gym.misc.experiment import ActionConcatWrapper, ActionPaddingWrapper
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 env_name_mapping = {
     "Homo": HomoNcomIndePOIntrxMASS3CTWN3,
     "Hetero": HeteNcomIndePOIntrxMATLS1B2C1PTWN3,
-    "Transport.Dynamic": DynamicAvoidance,
-    "Transport.Static": StaticAvoidance,
+    "Transport.Dynamic": transport.DynamicAvoidance,
+    "Transport.Static": transport.StaticAvoidance,
+    "Recce.Dynamic": recce.DynamicAvoidance,
     "Navigation": Navigation,
     "Town01": Town01Sim,
     "Town03": Town03Sim,
@@ -49,6 +50,7 @@ class RllibMacad(MultiAgentEnv):
         self.use_only_semantic = config.get("use_only_semantic", False)
         self.use_only_camera = config.get("use_only_camera", False)
         self.pad_action_space = config.get("pad_action_space", False)
+        self.concat_action_space = config.get("concat_action_space", False)
 
         if self.use_only_semantic and self.use_only_camera:
             raise ValueError("`use_only_semantic` and `use_only_camera` can not be True at the same time")
@@ -66,6 +68,8 @@ class RllibMacad(MultiAgentEnv):
         
         if self.pad_action_space:
             self.env = ActionPaddingWrapper(self.env)
+        elif self.concat_action_space:
+            self.env = ActionConcatWrapper(self.env)
         
         # Get observation space
         actor_id = next(iter(self.env_config["actors"].keys()))
@@ -107,6 +111,8 @@ class RllibMacad(MultiAgentEnv):
         
         if self.pad_action_space:
             self.env = ActionPaddingWrapper(self.env)
+        elif self.concat_action_space:
+            self.env = ActionConcatWrapper(self.env)
 
     def reset(self):
         """Reset the environment and return the initial observation."""
