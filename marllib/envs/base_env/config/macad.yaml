@@ -1,7 +1,7 @@
 env: macad
 
 env_args:
-  map_name: "Town01" # | "default" | "Homo" | "Town01" | "Town03" | "Town05" | "Town11"
+  map_name: "Town01" # | "default" | "custom"
   use_only_semantic: true
   use_only_camera: false
   pad_action_space: false

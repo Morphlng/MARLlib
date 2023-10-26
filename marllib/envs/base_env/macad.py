@@ -1,12 +1,13 @@
 '''
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-10-24 21:57:41
+LastEditTime: 2023-10-26 15:55:13
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
-FilePath: \MARLlib\marllib\envs\base_env\macad.py
+FilePath: /MARLlib/marllib/envs/base_env/macad.py
 '''
 
+import logging
 import sys
 from copy import deepcopy
 
@@ -15,6 +16,8 @@ from gym.spaces import Box, Dict
 from macad_gym.envs import *
 from macad_gym.misc.experiment import ActionConcatWrapper, ActionPaddingWrapper
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
+
+logger = logging.getLogger(__name__)
 
 env_name_mapping = {
     "Homo": HomoNcomIndePOIntrxMASS3CTWN3,
@@ -66,10 +69,12 @@ class RllibMacad(MultiAgentEnv):
                        if actor_id not in self.env._ignore_actor_ids and actor_id != "ego"]
         self.num_agents = len(self.agents)
         
-        if self.pad_action_space:
-            self.env = ActionPaddingWrapper(self.env)
-        elif self.concat_action_space:
+        if self.concat_action_space:
             self.env = ActionConcatWrapper(self.env)
+        elif self.pad_action_space or self._check_heterogeneity():
+            logger.info("Heterogeneous agents detected, using ActionPaddingWrapper to pad the action space")
+            self.pad_action_space = True
+            self.env = ActionPaddingWrapper(self.env)
         
         # Get observation space
         actor_id = next(iter(self.env_config["actors"].keys()))
@@ -94,14 +99,17 @@ class RllibMacad(MultiAgentEnv):
             }
 
         if "action_mask" in obs_space.spaces:
-            env_config["mask_flag"] = True
+            self.use_mask_flag = True
             obs_dict.update({"action_mask": obs_space["action_mask"]})
+        else:
+            self.use_mask_flag = False
 
         self.observation_space = Dict(obs_dict)
         self.action_space = self.env.action_space[actor_id]
+        self._last_obs = None
 
     def _hard_reset(self):
-        """If normal reset raise an exception, try hard reset first"""
+        """If normal reset raise an exception, try to hard reset the env"""
         if self.env:
             self.env.close()
 
@@ -120,36 +128,37 @@ class RllibMacad(MultiAgentEnv):
             try:
                 origin_obs = self.env.reset()
                 break
-            except KeyboardInterrupt as e:
+            except KeyboardInterrupt:
                 sys.exit(-1)
-            except Exception as e:
-                print("Exception raised when reset: {}".format(e))
-                print("Reset failed, try hard reset")
+            except Exception:
+                logger.exception("Exception raised during env.reset")
+                logger.warning("Reset failed, try hard reset")
                 self._hard_reset()
 
-        obs, _, _, _ = self._process_return(origin_obs)
-        return obs
+        self._last_obs, _, _, _ = self._process_return(origin_obs)
+        return self._last_obs
 
     def step(self, action_dict: dict):
+        """Step the environment with the given action"""
+        
         # We add this only to update the observation
-        # This action will not take effect
+        # Ego action will not take effect
         if "ego" in self.env_config["actors"]:
             action_dict["ego"] = self.env.action_space["ego"].sample()
 
         try:
             origin_obs, r, d, i = self.env.step(action_dict)
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             sys.exit(-1)
-        except Exception as e:
-            print("Exception raised when step: {}".format(e))
-            print("Step failed, set done to True and try hard reset on next reset")
+        except Exception:
+            logger.exception("Exception raised during env.step")
+            logger.warning("Step failed, set done to True and try hard reset on next reset")
             # Pseudo return
             origin_obs, r, d, i = (self.env.observation_space.sample(), None, None, None)
-            self.env.close()
             self.env = None
 
-        obs, reward, done, info = self._process_return(origin_obs, r, d, i)
-        return obs, reward, done, info
+        self._last_obs, reward, done, info = self._process_return(origin_obs, r, d, i)
+        return self._last_obs, reward, done, info
 
     def _process_return(self, o, r=None, d=None, i=None):
         """Process the return of env.step"""
@@ -176,6 +185,16 @@ class RllibMacad(MultiAgentEnv):
         done["__all__"] = d["__all__"] if d is not None else True
         return obs, reward, done, info
 
+    def _check_heterogeneity(self):
+        """Check if the agents are heterogeneous"""
+        spaces = {}
+        for agent_action in self.env.agent_actions.values():
+            action_type = agent_action.action_type
+            if action_type not in spaces:
+                spaces[action_type] = agent_action.space_type
+        
+        return len(spaces) > 1
+
     def close(self):
         self.env.close()
 
@@ -187,6 +206,7 @@ class RllibMacad(MultiAgentEnv):
             "space_act": self.action_space,
             "num_agents": self.num_agents,
             "episode_limit": scenario_config["max_steps"] if isinstance(scenario_config, dict) else scenario_config[0]["max_steps"],
-            "policy_mapping_info": policy_mapping_dict
+            "policy_mapping_info": policy_mapping_dict,
+            "mask_flag": True if self.use_mask_flag else False
         }
         return env_info
