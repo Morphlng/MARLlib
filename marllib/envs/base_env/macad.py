@@ -1,7 +1,7 @@
 '''
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-10-26 15:55:13
+LastEditTime: 2023-10-29 10:48:51
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: /MARLlib/marllib/envs/base_env/macad.py
@@ -13,6 +13,7 @@ from copy import deepcopy
 
 import numpy as np
 from gym.spaces import Box, Dict
+from macad_gym import ENV_ASSETS
 from macad_gym.envs import *
 from macad_gym.misc.experiment import ActionConcatWrapper, ActionPaddingWrapper
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
@@ -37,7 +38,7 @@ env_name_mapping = {
 policy_mapping_dict = {
     "all_scenario": {
         "description": "macad all scenarios",
-        "team_prefix": ("car",),
+        "team_prefix": ("agent_",),
         # This means that all agents have the same policy
         "all_agents_one_policy": True,
         # This means that each agent has a different policy
@@ -124,7 +125,7 @@ class RllibMacad(MultiAgentEnv):
 
     def reset(self):
         """Reset the environment and return the initial observation."""
-        for _ in range(3):
+        for i in range(ENV_ASSETS.retries_on_error):
             try:
                 origin_obs = self.env.reset()
                 break
@@ -134,6 +135,8 @@ class RllibMacad(MultiAgentEnv):
                 logger.exception("Exception raised during env.reset")
                 logger.warning("Reset failed, try hard reset")
                 self._hard_reset()
+                if i == ENV_ASSETS.retries_on_error - 1:
+                    raise RuntimeError("Maximum reset attempts exceeded")
 
         self._last_obs, _, _, _ = self._process_return(origin_obs)
         return self._last_obs
