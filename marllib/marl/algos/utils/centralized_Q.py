@@ -46,15 +46,13 @@ def get_dim(a):
 
 
 class CentralizedQValueMixin:
-
     def __init__(self):
         self.compute_central_q = self.model.get_cc_q_values
 
 
-def centralized_critic_q(policy: Policy,
-                         sample_batch: SampleBatch,
-                         other_agent_batches=None,
-                         episode=None) -> SampleBatch:
+def centralized_critic_q(
+    policy: Policy, sample_batch: SampleBatch, other_agent_batches=None, episode=None
+) -> SampleBatch:
     custom_config = policy.config["model"]["custom_model_config"]
     pytorch = custom_config["framework"] == "torch"
     obs_dim = get_dim(custom_config["space_obs"]["obs"].shape)
@@ -64,87 +62,152 @@ def centralized_critic_q(policy: Policy,
     mask_flag = custom_config["mask_flag"]
 
     if mask_flag:
-        action_mask_dim = custom_config["space_act"].n
+        action_space = custom_config["space_act"]
+        if hasattr(action_space, "n"):
+            action_mask_dim = action_space.n
+        elif hasattr(action_space, "nvec"):
+            action_mask_dim = sum(action_space.nvec)
     else:
         action_mask_dim = 0
 
     n_agents = custom_config["num_agents"]
     opponent_agents_num = n_agents - 1
 
-    if (pytorch and hasattr(policy, "compute_central_q")) or \
-            (not pytorch and policy.loss_initialized()):
-
+    if (pytorch and hasattr(policy, "compute_central_q")) or (
+        not pytorch and policy.loss_initialized()
+    ):
         if not opp_action_in_cc and global_state_flag:
-            sample_batch["state"] = sample_batch['obs'][:, action_mask_dim + obs_dim:]
-            sample_batch["new_state"] = sample_batch['new_obs'][:, action_mask_dim + obs_dim:]
+            sample_batch["state"] = sample_batch["obs"][:, action_mask_dim + obs_dim :]
+            sample_batch["new_state"] = sample_batch["new_obs"][
+                :, action_mask_dim + obs_dim :
+            ]
             raise ValueError("offpolicy centralized critic without action is illegal")
 
         else:  # need opponent info
             assert other_agent_batches is not None
             opponent_batch_list = list(other_agent_batches.values())
-            raw_opponent_batch = [opponent_batch_list[i][1] for i in range(opponent_agents_num)]
+            raw_opponent_batch = [
+                opponent_batch_list[i][1] for i in range(opponent_agents_num)
+            ]
             opponent_batch = []
             for one_opponent_batch in raw_opponent_batch:
                 if len(one_opponent_batch) == len(sample_batch):
                     pass
                 else:
                     if len(one_opponent_batch) > len(sample_batch):
-                        one_opponent_batch = one_opponent_batch.slice(0, len(sample_batch))
+                        one_opponent_batch = one_opponent_batch.slice(
+                            0, len(sample_batch)
+                        )
                     else:  # len(one_opponent_batch) < len(sample_batch):
                         length_dif = len(sample_batch) - len(one_opponent_batch)
                         one_opponent_batch = one_opponent_batch.concat(
-                            one_opponent_batch.slice(len(one_opponent_batch) - length_dif, len(one_opponent_batch)))
+                            one_opponent_batch.slice(
+                                len(one_opponent_batch) - length_dif,
+                                len(one_opponent_batch),
+                            )
+                        )
                 opponent_batch.append(one_opponent_batch)
 
             # all other agent obs as state
             # sample_batch["state"] = sample_batch['obs'][:, action_mask_dim:action_mask_dim + obs_dim]
             if global_state_flag:
-                sample_batch["state"] = sample_batch['obs'][:, action_mask_dim + obs_dim:]
-                sample_batch["new_state"] = sample_batch['new_obs'][:, action_mask_dim + obs_dim:]
+                sample_batch["state"] = sample_batch["obs"][
+                    :, action_mask_dim + obs_dim :
+                ]
+                sample_batch["new_state"] = sample_batch["new_obs"][
+                    :, action_mask_dim + obs_dim :
+                ]
 
             else:
                 sample_batch["state"] = np.stack(
-                    [sample_batch['obs'][:, action_mask_dim:action_mask_dim + obs_dim]] + [
-                        opponent_batch[i]["obs"][:, action_mask_dim:action_mask_dim + obs_dim] for i in
-                        range(opponent_agents_num)], 1)
+                    [
+                        sample_batch["obs"][
+                            :, action_mask_dim : action_mask_dim + obs_dim
+                        ]
+                    ]
+                    + [
+                        opponent_batch[i]["obs"][
+                            :, action_mask_dim : action_mask_dim + obs_dim
+                        ]
+                        for i in range(opponent_agents_num)
+                    ],
+                    1,
+                )
                 sample_batch["new_state"] = np.stack(
-                    [sample_batch['new_obs'][:, action_mask_dim:action_mask_dim + obs_dim]] + [
-                        opponent_batch[i]["new_obs"][:, action_mask_dim:action_mask_dim + obs_dim] for i in
-                        range(opponent_agents_num)], 1)
+                    [
+                        sample_batch["new_obs"][
+                            :, action_mask_dim : action_mask_dim + obs_dim
+                        ]
+                    ]
+                    + [
+                        opponent_batch[i]["new_obs"][
+                            :, action_mask_dim : action_mask_dim + obs_dim
+                        ]
+                        for i in range(opponent_agents_num)
+                    ],
+                    1,
+                )
 
             sample_batch["opponent_actions"] = np.stack(
-                [opponent_batch[i]["actions"] for i in range(opponent_agents_num)],
-                1)
+                [opponent_batch[i]["actions"] for i in range(opponent_agents_num)], 1
+            )
             sample_batch["prev_opponent_actions"] = np.stack(
                 [opponent_batch[i]["prev_actions"] for i in range(opponent_agents_num)],
-                1)
-
+                1,
+            )
 
     else:
         # Policy hasn't been initialized yet, use zeros.
         o = sample_batch[SampleBatch.CUR_OBS]
         if global_state_flag:
-            sample_batch["state"] = np.zeros((o.shape[0], get_dim(custom_config["space_obs"]["state"].shape)),
-                                             dtype=sample_batch[SampleBatch.CUR_OBS].dtype)
-            sample_batch["new_state"] = np.zeros((o.shape[0], get_dim(custom_config["space_obs"]["state"].shape)),
-                                                 dtype=sample_batch[SampleBatch.CUR_OBS].dtype)
+            sample_batch["state"] = np.zeros(
+                (o.shape[0], get_dim(custom_config["space_obs"]["state"].shape)),
+                dtype=sample_batch[SampleBatch.CUR_OBS].dtype,
+            )
+            sample_batch["new_state"] = np.zeros(
+                (o.shape[0], get_dim(custom_config["space_obs"]["state"].shape)),
+                dtype=sample_batch[SampleBatch.CUR_OBS].dtype,
+            )
         else:
-            sample_batch["state"] = np.zeros((o.shape[0], n_agents, obs_dim),
-                                             dtype=sample_batch[SampleBatch.CUR_OBS].dtype)
-            sample_batch["new_state"] = np.zeros((o.shape[0], n_agents, obs_dim),
-                                                 dtype=sample_batch[SampleBatch.CUR_OBS].dtype)
+            sample_batch["state"] = np.zeros(
+                (o.shape[0], n_agents, obs_dim),
+                dtype=sample_batch[SampleBatch.CUR_OBS].dtype,
+            )
+            sample_batch["new_state"] = np.zeros(
+                (o.shape[0], n_agents, obs_dim),
+                dtype=sample_batch[SampleBatch.CUR_OBS].dtype,
+            )
 
         sample_batch["vf_preds"] = np.zeros_like(
-            sample_batch[SampleBatch.REWARDS], dtype=np.float32)
+            sample_batch[SampleBatch.REWARDS], dtype=np.float32
+        )
         sample_batch["opponent_actions"] = np.stack(
-            [np.zeros_like(sample_batch["actions"], dtype=sample_batch["actions"].dtype) for _ in
-             range(opponent_agents_num)], axis=1)
+            [
+                np.zeros_like(
+                    sample_batch["actions"], dtype=sample_batch["actions"].dtype
+                )
+                for _ in range(opponent_agents_num)
+            ],
+            axis=1,
+        )
         sample_batch["prev_opponent_actions"] = np.stack(
-            [np.zeros_like(sample_batch["actions"], dtype=sample_batch["actions"].dtype) for _ in
-             range(opponent_agents_num)], axis=1)
+            [
+                np.zeros_like(
+                    sample_batch["actions"], dtype=sample_batch["actions"].dtype
+                )
+                for _ in range(opponent_agents_num)
+            ],
+            axis=1,
+        )
         sample_batch["next_opponent_actions"] = np.stack(
-            [np.zeros_like(sample_batch["actions"], dtype=sample_batch["actions"].dtype) for _ in
-             range(opponent_agents_num)], axis=1)
+            [
+                np.zeros_like(
+                    sample_batch["actions"], dtype=sample_batch["actions"].dtype
+                )
+                for _ in range(opponent_agents_num)
+            ],
+            axis=1,
+        )
 
     # N-step reward adjustments.
     if policy.config["n_step"] > 1:
@@ -162,7 +225,6 @@ def centralized_critic_q(policy: Policy,
 def before_learn_on_batch(multi_agent_batch, policies, train_batch_size):
     all_agent_next_action = []
     for pid, policy in policies.items():
-
         custom_config = policy.config["model"]["custom_model_config"]
         obs_dim = get_dim(custom_config["space_obs"]["obs"].shape)
         global_state_flag = custom_config["global_state_flag"]
@@ -190,8 +252,10 @@ def before_learn_on_batch(multi_agent_batch, policies, train_batch_size):
             state_in = policy_batch["state_in_0"]
             state_in = [convert_to_torch_tensor(state_in, policy.device)]
         else:
-            state_in = [convert_to_torch_tensor(policy_batch["state_in_0"], policy.device),
-                        convert_to_torch_tensor(policy_batch["state_in_1"], policy.device)]
+            state_in = [
+                convert_to_torch_tensor(policy_batch["state_in_0"], policy.device),
+                convert_to_torch_tensor(policy_batch["state_in_1"], policy.device),
+            ]
 
         seq_lens = policy_batch["seq_lens"]
 
@@ -227,6 +291,8 @@ def before_learn_on_batch(multi_agent_batch, policies, train_batch_size):
             other_next_action_ts = np.delete(next_action_ts, current_agent_id, axis=0)
             other_next_action_batch_ls.append(other_next_action_ts)
         other_next_action_batch = np.stack(other_next_action_batch_ls, 0)
-        multi_agent_batch.policy_batches[pid]["next_opponent_actions"] = other_next_action_batch
+        multi_agent_batch.policy_batches[pid][
+            "next_opponent_actions"
+        ] = other_next_action_batch
 
     return multi_agent_batch

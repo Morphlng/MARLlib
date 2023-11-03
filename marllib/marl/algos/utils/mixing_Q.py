@@ -40,7 +40,6 @@ mixing Q postprocessing for
 
 
 class MixingQValueMixin:
-
     def __init__(self):
         self.compute_mixing_q = True
 
@@ -54,14 +53,16 @@ def align_batch(one_opponent_batch, sample_batch):
         else:  # len(one_opponent_batch) < len(sample_batch):
             length_dif = len(sample_batch) - len(one_opponent_batch)
             one_opponent_batch = one_opponent_batch.concat(
-                one_opponent_batch.slice(len(one_opponent_batch) - length_dif, len(one_opponent_batch)))
+                one_opponent_batch.slice(
+                    len(one_opponent_batch) - length_dif, len(one_opponent_batch)
+                )
+            )
     return one_opponent_batch
 
 
-def q_value_mixing(policy: Policy,
-                   sample_batch: SampleBatch,
-                   other_agent_batches=None,
-                   episode=None) -> SampleBatch:
+def q_value_mixing(
+    policy: Policy, sample_batch: SampleBatch, other_agent_batches=None, episode=None
+) -> SampleBatch:
     custom_config = policy.config["model"]["custom_model_config"]
     pytorch = custom_config["framework"] == "torch"
     obs_dim = get_dim(custom_config["space_obs"]["obs"].shape)
@@ -71,24 +72,32 @@ def q_value_mixing(policy: Policy,
     mask_flag = custom_config["mask_flag"]
 
     if mask_flag:
-        action_mask_dim = custom_config["space_act"].n
+        action_space = custom_config["space_act"]
+        if hasattr(action_space, "n"):
+            action_mask_dim = action_space.n
+        elif hasattr(action_space, "nvec"):
+            action_mask_dim = sum(action_space.nvec)
     else:
         action_mask_dim = 0
 
     n_agents = custom_config["num_agents"]
     opponent_agents_num = n_agents - 1
 
-    if (pytorch and hasattr(policy, "compute_mixing_q")) or \
-            (not pytorch and policy.loss_initialized()):
-
+    if (pytorch and hasattr(policy, "compute_mixing_q")) or (
+        not pytorch and policy.loss_initialized()
+    ):
         if not opp_action_in_cc and global_state_flag:
-            sample_batch["state"] = sample_batch['obs'][:, action_mask_dim + obs_dim:]
-            sample_batch["new_state"] = sample_batch['new_obs'][:, action_mask_dim + obs_dim:]
+            sample_batch["state"] = sample_batch["obs"][:, action_mask_dim + obs_dim :]
+            sample_batch["new_state"] = sample_batch["new_obs"][
+                :, action_mask_dim + obs_dim :
+            ]
 
         else:  # need opponent info
             assert other_agent_batches is not None
             opponent_batch_list = list(other_agent_batches.values())
-            raw_opponent_batch = [opponent_batch_list[i][1] for i in range(opponent_agents_num)]
+            raw_opponent_batch = [
+                opponent_batch_list[i][1] for i in range(opponent_agents_num)
+            ]
             opponent_batch = []
             for one_opponent_batch in raw_opponent_batch:
                 one_opponent_batch = align_batch(one_opponent_batch, sample_batch)
@@ -97,39 +106,73 @@ def q_value_mixing(policy: Policy,
             # all other agent obs as state
             # sample_batch["state"] = sample_batch['obs'][:, action_mask_dim:action_mask_dim + obs_dim]
             if global_state_flag:
-                sample_batch["state"] = sample_batch['obs'][:, action_mask_dim + obs_dim:]
-                sample_batch["new_state"] = sample_batch['new_obs'][:, action_mask_dim + obs_dim:]
+                sample_batch["state"] = sample_batch["obs"][
+                    :, action_mask_dim + obs_dim :
+                ]
+                sample_batch["new_state"] = sample_batch["new_obs"][
+                    :, action_mask_dim + obs_dim :
+                ]
 
             else:
                 sample_batch["state"] = np.stack(
-                    [sample_batch['obs'][:, action_mask_dim:action_mask_dim + obs_dim]] + [
-                        opponent_batch[i]["obs"][:, action_mask_dim:action_mask_dim + obs_dim] for i in
-                        range(opponent_agents_num)], 1)
+                    [
+                        sample_batch["obs"][
+                            :, action_mask_dim : action_mask_dim + obs_dim
+                        ]
+                    ]
+                    + [
+                        opponent_batch[i]["obs"][
+                            :, action_mask_dim : action_mask_dim + obs_dim
+                        ]
+                        for i in range(opponent_agents_num)
+                    ],
+                    1,
+                )
                 sample_batch["new_state"] = np.stack(
-                    [sample_batch['new_obs'][:, action_mask_dim:action_mask_dim + obs_dim]] + [
-                        opponent_batch[i]["new_obs"][:, action_mask_dim:action_mask_dim + obs_dim] for i in
-                        range(opponent_agents_num)], 1)
+                    [
+                        sample_batch["new_obs"][
+                            :, action_mask_dim : action_mask_dim + obs_dim
+                        ]
+                    ]
+                    + [
+                        opponent_batch[i]["new_obs"][
+                            :, action_mask_dim : action_mask_dim + obs_dim
+                        ]
+                        for i in range(opponent_agents_num)
+                    ],
+                    1,
+                )
 
     else:
         # Policy hasn't been initialized yet, use zeros.
         o = sample_batch[SampleBatch.CUR_OBS]
         if global_state_flag:
-            sample_batch["state"] = np.zeros((o.shape[0], get_dim(custom_config["space_obs"]["state"].shape)),
-                                             dtype=sample_batch[SampleBatch.CUR_OBS].dtype)
-            sample_batch["new_state"] = np.zeros((o.shape[0], get_dim(custom_config["space_obs"]["state"].shape)),
-                                                 dtype=sample_batch[SampleBatch.CUR_OBS].dtype)
+            sample_batch["state"] = np.zeros(
+                (o.shape[0], get_dim(custom_config["space_obs"]["state"].shape)),
+                dtype=sample_batch[SampleBatch.CUR_OBS].dtype,
+            )
+            sample_batch["new_state"] = np.zeros(
+                (o.shape[0], get_dim(custom_config["space_obs"]["state"].shape)),
+                dtype=sample_batch[SampleBatch.CUR_OBS].dtype,
+            )
         else:
-            sample_batch["state"] = np.zeros((o.shape[0], n_agents, obs_dim),
-                                             dtype=sample_batch[SampleBatch.CUR_OBS].dtype)
-            sample_batch["new_state"] = np.zeros((o.shape[0], n_agents, obs_dim),
-                                                 dtype=sample_batch[SampleBatch.CUR_OBS].dtype)
+            sample_batch["state"] = np.zeros(
+                (o.shape[0], n_agents, obs_dim),
+                dtype=sample_batch[SampleBatch.CUR_OBS].dtype,
+            )
+            sample_batch["new_state"] = np.zeros(
+                (o.shape[0], n_agents, obs_dim),
+                dtype=sample_batch[SampleBatch.CUR_OBS].dtype,
+            )
 
         sample_batch["opponent_q"] = np.zeros(
             (sample_batch["state"].shape[0], opponent_agents_num),
-            dtype=sample_batch["obs"].dtype)
+            dtype=sample_batch["obs"].dtype,
+        )
         sample_batch["next_opponent_q"] = np.zeros(
             (sample_batch["state"].shape[0], opponent_agents_num),
-            dtype=sample_batch["obs"].dtype)
+            dtype=sample_batch["obs"].dtype,
+        )
 
     # N-step rewards adjustments.
     if policy.config["n_step"] > 1:
@@ -148,7 +191,6 @@ def before_learn_on_batch(multi_agent_batch, policies, train_batch_size):
     all_agent_q = []
     all_agent_target_q = []
     for pid, policy in policies.items():
-
         custom_config = policy.config["model"]["custom_model_config"]
         obs_dim = get_dim(custom_config["space_obs"]["obs"].shape)
         global_state_flag = custom_config["global_state_flag"]
@@ -196,18 +238,28 @@ def before_learn_on_batch(multi_agent_batch, policies, train_batch_size):
         seq_lens = convert_to_torch_tensor(seq_lens, policy.device)
 
         input_dict = convert_to_torch_tensor(input_dict, policy.device)
-        state_in_q = [convert_to_torch_tensor(state_rnn, policy.device) for state_rnn in state_in_q]
+        state_in_q = [
+            convert_to_torch_tensor(state_rnn, policy.device)
+            for state_rnn in state_in_q
+        ]
         q, _ = q_model.forward(input_dict, state_in_q, seq_lens)
         q = convert_to_numpy(q)
 
         # get next action & Q value from target model
         target_input_dict = convert_to_torch_tensor(target_input_dict, policy.device)
-        state_in_p = [convert_to_torch_tensor(state_rnn, policy.device) for state_rnn in state_in_p]
-        next_action_out, _ = target_policy_model.forward(target_input_dict, state_in_p, seq_lens)
+        state_in_p = [
+            convert_to_torch_tensor(state_rnn, policy.device)
+            for state_rnn in state_in_p
+        ]
+        next_action_out, _ = target_policy_model.forward(
+            target_input_dict, state_in_p, seq_lens
+        )
         next_action = target_policy_model.action_out_squashed(next_action_out)
         target_input_dict["actions"] = next_action
 
-        next_target_q, _ = target_q_model.forward(target_input_dict, state_in_q, seq_lens)
+        next_target_q, _ = target_q_model.forward(
+            target_input_dict, state_in_q, seq_lens
+        )
         next_target_q = convert_to_numpy(next_target_q)
 
         agent_id = np.unique(policy_batch["agent_index"])
@@ -237,7 +289,9 @@ def before_learn_on_batch(multi_agent_batch, policies, train_batch_size):
             all_agent_target_q_ls.append(all_agent_target_q)
 
         q_batch = np.stack(all_agent_q_ls, 1).reshape((policy_batch.count, -1))
-        target_q_batch = np.stack(all_agent_target_q_ls, 1).reshape((policy_batch.count, -1))
+        target_q_batch = np.stack(all_agent_target_q_ls, 1).reshape(
+            (policy_batch.count, -1)
+        )
 
         other_q_batch_ls = []
         other_target_q_batch_ls = []

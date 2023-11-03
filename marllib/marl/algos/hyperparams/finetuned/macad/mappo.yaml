@@ -2,41 +2,19 @@
 
 # Detailed explanation for each hyper parameter can be found in ray/rllib/agents/ppo/ppo.py
 
-# Default Parameter
-# algo_args:
-#   use_gae: True
-#   lambda: 1.0
-#   kl_coeff: 0.2
-#   batch_episode: 10
-#   num_sgd_iter: 5
-#   vf_loss_coeff: 1.0
-#   lr: 0.0005
-#   entropy_coeff: 0.01
-#   clip_param: 0.3
-#   vf_clip_param: 10.0
-#   batch_mode: "complete_episodes"
-#   num_samples: 1                      # set to other only during tuning
-#   lr_schedule: null                   # [[timestamp, lr], ...]
-#   entropy_coeff_schedule: null        # [[timestamp, entropy], ...]
-#   resume: false                       # can be Bool|"ERRORED_ONLY"|"all"
 
 algo_args:
   use_gae: True
   lambda: 0.99
   kl_coeff: 0.2
-  batch_episode: 10       # 10 for semantic obs, 1 for camera obs
+  batch_episode: 5
   num_sgd_iter: 10
   vf_loss_coeff: 1.0
   lr: 0.0005
   entropy_coeff: 0.02
   clip_param: 0.3
   vf_clip_param: 10.0
-  batch_mode: "complete_episodes"
-  num_samples: 1
-  checkpoint_freq: 5
-  max_failures: -1
-  resume: false
-  restore: null
+  batch_mode: "truncate_episodes"
 
   lr_schedule:
   - - 0

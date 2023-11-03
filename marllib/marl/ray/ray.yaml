@@ -30,9 +30,11 @@ num_workers: 1 # thread number
 num_gpus: 1 # gpu to use
 num_cpus_per_worker: 1 # cpu allocate to each worker
 num_gpus_per_worker: 0 # gpu allocate to each worker
-checkpoint_freq: 5 # save model every 5 training iterations
+checkpoint_freq: 1 # save model every n training iterations
 checkpoint_end: True # save model at the end of the exp
-resume: False # resume the previous experiment, can't be true if specified restore model
+keep_checkpoints_num: 10 # max number of checkpoints to keep, if not None, need to provide a metric "checkpoint_score_attr"
+checkpoint_score_attr: "episode_reward_mean" # metric to use for checkpoint comparison
+resume: True # resume the previous experiment, can't be true if specified restore model
 restore_path: {"model_path": "", "params_path": ""} # load model and params path: 1. resume exp 2. rendering policy
 stop_iters: 9999999 # stop training at this iteration
 stop_timesteps: 90000000 # stop training at this timesteps
