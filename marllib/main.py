@@ -1,7 +1,7 @@
 from marllib import marl
 
 # prepare env
-env = marl.make_env(environment_name="macad", map_name="Town01")
+env = marl.make_env(environment_name="macad", map_name="Transport.Dynamic")
 
 # initialize algorithm with appointed hyper-parameters
 mappo = marl.algos.mappo(hyperparam_source='macad')

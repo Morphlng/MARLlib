@@ -34,7 +34,7 @@ checkpoint_freq: 1 # save model every n training iterations
 checkpoint_end: True # save model at the end of the exp
 keep_checkpoints_num: 10 # max number of checkpoints to keep, if not None, need to provide a metric "checkpoint_score_attr"
 checkpoint_score_attr: "episode_reward_mean" # metric to use for checkpoint comparison
-resume: True # resume the previous experiment, can't be true if specified restore model
+resume: False # resume the previous experiment, can't be true if specified restore model
 restore_path: {"model_path": "", "params_path": ""} # load model and params path: 1. resume exp 2. rendering policy
 stop_iters: 9999999 # stop training at this iteration
 stop_timesteps: 90000000 # stop training at this timesteps

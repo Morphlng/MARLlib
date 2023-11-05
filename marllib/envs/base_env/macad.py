@@ -1,11 +1,11 @@
-'''
+"""
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-10-29 10:48:51
+LastEditTime: 2023-11-05 10:12:13
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: /MARLlib/marllib/envs/base_env/macad.py
-'''
+"""
 
 import logging
 import sys
@@ -57,26 +57,38 @@ class RllibMacad(MultiAgentEnv):
         self.concat_action_space = config.get("concat_action_space", False)
 
         if self.use_only_semantic and self.use_only_camera:
-            raise ValueError("`use_only_semantic` and `use_only_camera` can not be True at the same time")
+            raise ValueError(
+                "`use_only_semantic` and `use_only_camera` can not be True at the same time"
+            )
 
         env_class = env_name_mapping[self.map_name]
-        self.env: MultiCarlaEnv = env_class(config) if self.map_name == "custom" else env_class()
+        self.env: MultiCarlaEnv = (
+            env_class(config) if self.map_name == "custom" else env_class()
+        )
         self.env_config = self.env.configs
 
         if self.use_only_semantic and not self.env.env_obs.send_measurements:
-            raise ValueError("`use_only_semantic` cannot be True when `send_measurement` is False")
+            raise ValueError(
+                "`use_only_semantic` cannot be True when `send_measurement` is False"
+            )
 
-        self.agents = [actor_id for actor_id in self.env_config["actors"]
-                       if actor_id not in self.env._ignore_actor_ids and actor_id != "ego"]
+        self.agents = [
+            actor_id
+            for actor_id in self.env_config["actors"]
+            if actor_id not in self.env._ignore_actor_ids and actor_id != "ego"
+        ]
         self.num_agents = len(self.agents)
-        
+
         if self.concat_action_space:
+            logger.info("Enabling ActionConcatWrapper to homogenize the action space")
             self.env = ActionConcatWrapper(self.env)
         elif self.pad_action_space or self._check_heterogeneity():
-            logger.info("Heterogeneous agents detected, using ActionPaddingWrapper to pad the action space")
+            logger.info(
+                "Heterogeneous agents detected, using ActionPaddingWrapper to pad the action space"
+            )
             self.pad_action_space = True
             self.env = ActionPaddingWrapper(self.env)
-        
+
         # Get observation space
         actor_id = next(iter(self.env_config["actors"].keys()))
         obs_space = self.env.observation_space[actor_id]
@@ -88,7 +100,12 @@ class RllibMacad(MultiAgentEnv):
                 "state": Box(
                     low=-np.inf,
                     high=np.inf,
-                    shape=(image_space.shape[0], image_space.shape[1], image_space.shape[2] * (self.num_agents - 1)))
+                    shape=(
+                        image_space.shape[0],
+                        image_space.shape[1],
+                        image_space.shape[2] * (self.num_agents - 1),
+                    ),
+                ),
             }
         elif self.use_only_semantic:
             obs_dict = {
@@ -115,9 +132,13 @@ class RllibMacad(MultiAgentEnv):
             self.env.close()
 
         env_class = env_name_mapping[self.map_name]
-        self.env = MultiCarlaEnv(self.env_config) if env_class == MultiCarlaEnv else env_class()
+        self.env = (
+            MultiCarlaEnv(self.env_config)
+            if env_class == MultiCarlaEnv
+            else env_class()
+        )
         self.env_config = self.env.configs
-        
+
         if self.pad_action_space:
             self.env = ActionPaddingWrapper(self.env)
         elif self.concat_action_space:
@@ -143,9 +164,9 @@ class RllibMacad(MultiAgentEnv):
 
     def step(self, action_dict: dict):
         """Step the environment with the given action"""
-        
-        # We add this only to update the observation
-        # Ego action will not take effect
+
+        # We add this only to trigger the reward calculation for ego
+        # Ego action will not take effect as long as using pseudo action (by default)
         if "ego" in self.env_config["actors"]:
             action_dict["ego"] = self.env.action_space["ego"].sample()
 
@@ -155,9 +176,16 @@ class RllibMacad(MultiAgentEnv):
             sys.exit(-1)
         except Exception:
             logger.exception("Exception raised during env.step")
-            logger.warning("Step failed, set done to True and try hard reset on next reset")
+            logger.warning(
+                "Step failed, set done to True and try hard reset on next reset"
+            )
             # Pseudo return
-            origin_obs, r, d, i = (self.env.observation_space.sample(), None, None, None)
+            origin_obs, r, d, i = (
+                self.env.observation_space.sample(),
+                None,
+                None,
+                None,
+            )
             self.env = None
 
         self._last_obs, reward, done, info = self._process_return(origin_obs, r, d, i)
@@ -175,7 +203,10 @@ class RllibMacad(MultiAgentEnv):
                 elif self.use_only_camera:
                     obs[actor_id] = {
                         "obs": o[actor_id]["camera"],
-                        "state": np.concatenate([o[id]["camera"] for id in o.keys() if id != actor_id], axis=-1)
+                        "state": np.concatenate(
+                            [o[id]["camera"] for id in o.keys() if id != actor_id],
+                            axis=-1,
+                        ),
                     }
 
                 if "action_mask" in o[actor_id]:
@@ -193,9 +224,9 @@ class RllibMacad(MultiAgentEnv):
         spaces = {}
         for agent_action in self.env.agent_actions.values():
             action_type = agent_action.action_type
-            if action_type not in spaces:
+            if action_type not in spaces and "pseudo" not in action_type:
                 spaces[action_type] = agent_action.space_type
-        
+
         return len(spaces) > 1
 
     def close(self):
@@ -208,8 +239,10 @@ class RllibMacad(MultiAgentEnv):
             "space_obs": self.observation_space,
             "space_act": self.action_space,
             "num_agents": self.num_agents,
-            "episode_limit": scenario_config["max_steps"] if isinstance(scenario_config, dict) else scenario_config[0]["max_steps"],
+            "episode_limit": scenario_config["max_steps"]
+            if isinstance(scenario_config, dict)
+            else scenario_config[0]["max_steps"],
             "policy_mapping_info": policy_mapping_dict,
-            "mask_flag": True if self.use_mask_flag else False
+            "mask_flag": self.use_mask_flag,
         }
         return env_info
