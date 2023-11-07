@@ -1,7 +1,7 @@
 """
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-11-05 10:12:13
+LastEditTime: 2023-11-07 21:02:50
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: /MARLlib/marllib/envs/base_env/macad.py
@@ -25,6 +25,8 @@ env_name_mapping = {
     "Hetero": HeteNcomIndePOIntrxMATLS1B2C1PTWN3,
     "Transport.Dynamic": transport.DynamicAvoidance,
     "Transport.Static": transport.StaticAvoidance,
+    "Transport.Passthrough": transport.PassThrough,
+    "Transport.Stopping": transport.Stopping,
     "Recce.Dynamic": recce.DynamicAvoidance,
     "Navigation": Navigation,
     "Town01": Town01Sim,
