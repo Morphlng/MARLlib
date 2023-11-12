@@ -1,14 +1,13 @@
 """
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-11-07 21:02:50
+LastEditTime: 2023-11-12 09:55:14
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: /MARLlib/marllib/envs/base_env/macad.py
 """
 
 import logging
-import sys
 from copy import deepcopy
 
 import numpy as np
@@ -152,8 +151,6 @@ class RllibMacad(MultiAgentEnv):
             try:
                 origin_obs = self.env.reset()
                 break
-            except KeyboardInterrupt:
-                sys.exit(-1)
             except Exception:
                 logger.exception("Exception raised during env.reset")
                 logger.warning("Reset failed, try hard reset")
@@ -174,8 +171,6 @@ class RllibMacad(MultiAgentEnv):
 
         try:
             origin_obs, r, d, i = self.env.step(action_dict)
-        except KeyboardInterrupt:
-            sys.exit(-1)
         except Exception:
             logger.exception("Exception raised during env.step")
             logger.warning(
@@ -236,14 +231,17 @@ class RllibMacad(MultiAgentEnv):
 
     def get_env_info(self):
         scenario_config = self.env.scenarios.scenario_config
+        episode_limit = (
+            scenario_config["max_steps"]
+            if isinstance(scenario_config, dict)
+            else scenario_config[0]["max_steps"]
+        )
 
         env_info = {
             "space_obs": self.observation_space,
             "space_act": self.action_space,
             "num_agents": self.num_agents,
-            "episode_limit": scenario_config["max_steps"]
-            if isinstance(scenario_config, dict)
-            else scenario_config[0]["max_steps"],
+            "episode_limit": episode_limit,
             "policy_mapping_info": policy_mapping_dict,
             "mask_flag": self.use_mask_flag,
         }
