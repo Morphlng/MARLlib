@@ -1,7 +1,7 @@
 """
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-11-12 09:55:14
+LastEditTime: 2023-11-17 22:56:50
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: /MARLlib/marllib/envs/base_env/macad.py
@@ -27,13 +27,14 @@ env_name_mapping = {
     "Transport.Passthrough": transport.PassThrough,
     "Transport.Stopping": transport.Stopping,
     "Recce.Dynamic": recce.DynamicAvoidance,
+    "Recce.Foggy": recce.Foggy,
+    "Tracking.Suspicious": tracking.Suspicious,
     "Navigation": Navigation,
     "Town01": Town01Sim,
     "Town03": Town03Sim,
     "Town05": Town05Sim,
     "Town11": Town11Sim,
     "default": MultiCarlaEnv,
-    "custom": MultiCarlaEnv,
 }
 
 policy_mapping_dict = {
@@ -76,7 +77,7 @@ class RllibMacad(MultiAgentEnv):
         self.agents = [
             actor_id
             for actor_id in self.env_config["actors"]
-            if actor_id not in self.env._ignore_actor_ids and actor_id != "ego"
+            if actor_id not in self.env._background_actor_ids and actor_id != "ego"
         ]
         self.num_agents = len(self.agents)
 
