@@ -14,6 +14,7 @@ from marllib import marl
 
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
+
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
 
@@ -39,16 +40,16 @@ def form_algo_dict():
         if not os.path.isdir(os.path.join(core_path, algo_type)):
             continue
         for algo in os.listdir(os.path.join(core_path, algo_type)):
-            if algo.endswith('.py') and not algo.startswith('__'):
+            if algo.endswith(".py") and not algo.startswith("__"):
                 module_name = algo[:-3]  # remove .py extension
-                module_path = f'marllib.marl.algos.core.{algo_type}.{module_name}'
+                module_path = f"marllib.marl.algos.core.{algo_type}.{module_name}"
                 module = importlib.import_module(module_path)
 
-                trainer_class_name = module_name.upper() + 'Trainer'
+                trainer_class_name = module_name.upper() + "Trainer"
                 trainer_class = getattr(module, trainer_class_name, None)
                 if trainer_class is None:
                     for name, obj in inspect.getmembers(module):
-                        if name.endswith('Trainer'):
+                        if name.endswith("Trainer"):
                             trainers_dict[module_name] = obj
                 else:
                     trainers_dict[module_name] = (algo_type, trainer_class)
@@ -63,6 +64,7 @@ def update_config(config: dict):
     model_arch_args = find_key(config, "model_arch_args")
     algo_name = find_key(config, "algorithm")
     share_policy = find_key(config, "share_policy")
+    agent_level_batch_update = find_key(config, "agent_level_batch_update")
 
     ######################
     ### environment info ###
@@ -72,7 +74,7 @@ def update_config(config: dict):
     algorithm = dotdict({"name": algo_name, "algo_type": ALGO_DICT[algo_name][0]})
     model_instance, model_info = marl.build_model(env, algorithm, model_arch_args)
     ModelCatalog.register_custom_model(model_name, model_instance)
-    
+
     env_info = env_instance.get_env_info()
     policy_mapping_info = env_info["policy_mapping_info"]
     agent_name_ls = env_instance.agents
@@ -80,24 +82,31 @@ def update_config(config: dict):
     env_instance.close()
 
     config["model"]["custom_model_config"].update(env_info)
-    
+
     ######################
     ### policy sharing ###
     ######################
-    
+
     if "all_scenario" in policy_mapping_info:
         policy_mapping_info = policy_mapping_info["all_scenario"]
     else:
         policy_mapping_info = policy_mapping_info[map_name]
 
+    # whether to agent level batch update when shared model parameter:
+    # True -> default_policy | False -> shared_policy
+    shared_policy_name = (
+        "default_policy" if agent_level_batch_update else "shared_policy"
+    )
     if share_policy == "all":
         if not policy_mapping_info["all_agents_one_policy"]:
             raise ValueError(
-                "in {}, policy can not be shared, change it to 1. group 2. individual".format(map_name))
+                "in {}, policy can not be shared, change it to 1. group 2. individual".format(
+                    map_name
+                )
+            )
 
-        policies = {"av"}
-        policy_mapping_fn = (
-            lambda agent_id, episode, **kwargs: "av")
+        policies = {shared_policy_name}
+        policy_mapping_fn = lambda agent_id, episode, **kwargs: shared_policy_name
 
     elif share_policy == "group":
         groups = policy_mapping_info["team_prefix"]
@@ -105,33 +114,50 @@ def update_config(config: dict):
         if len(groups) == 1:
             if not policy_mapping_info["all_agents_one_policy"]:
                 raise ValueError(
-                    "in {}, policy can not be shared, change it to 1. group 2. individual".format(map_name))
+                    "in {}, policy can not be shared, change it to 1. group 2. individual".format(
+                        map_name
+                    )
+                )
 
-            policies = {"shared_policy"}
-            policy_mapping_fn = (
-                lambda agent_id, episode, **kwargs: "shared_policy")
+            policies = {shared_policy_name}
+            policy_mapping_fn = lambda agent_id, episode, **kwargs: shared_policy_name
 
         else:
             policies = {
-                "policy_{}".format(i): (None, env_info["space_obs"], env_info["space_act"], {}) for i in
-                groups
+                "policy_{}".format(i): (
+                    None,
+                    env_info["space_obs"],
+                    env_info["space_act"],
+                    {},
+                )
+                for i in groups
             }
             policy_ids = list(policies.keys())
             policy_mapping_fn = tune.function(
-                lambda agent_id: "policy_{}_".format(agent_id.split("_")[0]))
+                lambda agent_id: "policy_{}_".format(agent_id.split("_")[0])
+            )
 
     elif share_policy == "individual":
         if not policy_mapping_info["one_agent_one_policy"]:
             raise ValueError(
-                "in {}, agent number too large, we disable no sharing function".format(map_name))
+                "in {}, agent number too large, we disable no sharing function".format(
+                    map_name
+                )
+            )
 
         policies = {
-            "policy_{}".format(i): (None, env_info["space_obs"], env_info["space_act"], {}) for i in
-            range(env_info["num_agents"])
+            "policy_{}".format(i): (
+                None,
+                env_info["space_obs"],
+                env_info["space_act"],
+                {},
+            )
+            for i in range(env_info["num_agents"])
         }
         policy_ids = list(policies.keys())
         policy_mapping_fn = tune.function(
-            lambda agent_id: policy_ids[agent_name_ls.index(agent_id)])
+            lambda agent_id: policy_ids[agent_name_ls.index(agent_id)]
+        )
 
     else:
         raise ValueError("wrong share_policy {}".format(share_policy))
@@ -140,22 +166,33 @@ def update_config(config: dict):
     if algo_name in ["happo", "hatrpo"]:
         if not policy_mapping_info["one_agent_one_policy"]:
             raise ValueError(
-                "in {}, agent number too large, we disable no sharing function".format(map_name))
+                "in {}, agent number too large, we disable no sharing function".format(
+                    map_name
+                )
+            )
 
         policies = {
-            "policy_{}".format(i): (None, env_info["space_obs"], env_info["space_act"], {}) for i in
-            range(env_info["num_agents"])
+            "policy_{}".format(i): (
+                None,
+                env_info["space_obs"],
+                env_info["space_act"],
+                {},
+            )
+            for i in range(env_info["num_agents"])
         }
         policy_ids = list(policies.keys())
         policy_mapping_fn = tune.function(
-            lambda agent_id: policy_ids[agent_name_ls.index(agent_id)])
-    
-    config.update({
-        "multiagent": {
-            "policies": policies,
-            "policy_mapping_fn": policy_mapping_fn
-        },
-    })
+            lambda agent_id: policy_ids[agent_name_ls.index(agent_id)]
+        )
+
+    config.update(
+        {
+            "multiagent": {
+                "policies": policies,
+                "policy_mapping_fn": policy_mapping_fn,
+            },
+        }
+    )
 
 
 def load_model(model_config: dict) -> "tuple[Trainer, function]":
@@ -169,18 +206,25 @@ def load_model(model_config: dict) -> "tuple[Trainer, function]":
     """
 
     try:
-        with open(model_config['params_path'], 'r') as f:
+        with open(model_config["params_path"], "r") as f:
             params = json.load(f)
     except Exception as e:
         print("Error loading params: ", e)
         raise e
 
     if not ray.is_initialized():
-        ray.init(include_dashboard=False, configure_logging=True, logging_level=logging.ERROR, log_to_driver=False)
+        ray.init(
+            include_dashboard=False,
+            configure_logging=True,
+            logging_level=logging.ERROR,
+            log_to_driver=False,
+        )
 
     update_config(params)
-    trainer = ALGO_DICT[model_config.get("algo", find_key(params, "algorithm"))][1](params)
-    trainer.restore(model_config['model_path'])
+    trainer = ALGO_DICT[model_config.get("algo", find_key(params, "algorithm"))][1](
+        params
+    )
+    trainer.restore(model_config["model_path"])
 
     # This function (policy_map_fn) takes in actor_id (str), episode (int), returns the policy_id (str)
     # Most of the time, episode can be just 1
@@ -193,27 +237,43 @@ ALGO_DICT = form_algo_dict()
 
 
 if __name__ == "__main__":
-    agent, pmap = load_model({
-        'model_path': '/home/morphlng/ray_results/Town01_no_type/checkpoint_000425/checkpoint-425',
-        'params_path': '/home/morphlng/ray_results/Town01_no_type/params.json'})
+    agent, pmap = load_model(
+        {
+            "model_path": "checkpoint/checkpoint_000425/checkpoint-425",
+            "params_path": "checkpoint/params.json",
+        }
+    )
 
     # prepare env
     env = marl.make_env(environment_name="macad", map_name="Town01")
     env_instance, env_info = env
 
     # Inference
-    obs = env_instance.reset()
-    done = {"__all__": False}
-    states = {actor_id: agent.get_policy(pmap(actor_id, 1)).get_initial_state() for actor_id in obs}
+    for _ in range(10):
+        obs = env_instance.reset()
+        done = {"__all__": False}
+        states = {
+            actor_id: agent.get_policy(pmap(actor_id, 1)).get_initial_state()
+            for actor_id in obs
+        }
 
-    while not done["__all__"]:
-        action_dict = {}
-        for agent_id in obs.keys():
-            action_dict[agent_id], states[agent_id], _ = agent.compute_single_action(obs[agent_id], states[agent_id], policy_id=pmap(agent_id, 1), explore=False)
-        
-        obs, reward, done, info = env_instance.step(action_dict)
-    
-    env_instance.close()
+        while not done["__all__"]:
+            action_dict = {}
+            for agent_id in obs.keys():
+                (
+                    action_dict[agent_id],
+                    states[agent_id],
+                    _,
+                ) = agent.compute_single_action(
+                    obs[agent_id],
+                    states[agent_id],
+                    policy_id=pmap(agent_id, 1),
+                    explore=False,
+                )
+
+            obs, reward, done, info = env_instance.step(action_dict)
+
+        env_instance.close()
+
     ray.shutdown()
     print("Inference finished!")
-	
