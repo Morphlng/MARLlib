@@ -16,7 +16,6 @@
 &emsp;
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)]()
-![test](https://github.com/Replicable-MARL/MARLlib/workflows/test/badge.svg)
 ![coverage](https://github.com/Replicable-MARL/MARLlib/blob/rllib_1.8.0_dev/coverage.svg)
 [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/)
 [![GitHub issues](https://img.shields.io/github/issues/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib/issues)
@@ -32,8 +31,10 @@
 | **March 2023** :anchor:We are excited to announce that a major update has just been released. For detailed version information, please refer to the [version info](https://github.com/Replicable-MARL/MARLlib/releases/tag/1.0.2).|
 | **May 2023** Exciting news! MARLlib now supports five more tasks: [MATE](https://marllib.readthedocs.io/en/latest/handbook/env.html#mate), [GoBigger](https://marllib.readthedocs.io/en/latest/handbook/env.html#gobigger), [Overcooked-AI](https://marllib.readthedocs.io/en/latest/handbook/env.html#overcooked-ai), [MAPDN](https://marllib.readthedocs.io/en/latest/handbook/env.html#power-distribution-networks), and [AirCombat](https://marllib.readthedocs.io/en/latest/handbook/env.html#air-combat). Give them a try!|
 | **June 2023** [OpenAI: Hide and Seek](https://marllib.readthedocs.io/en/latest/handbook/env.html#hide-and-seek) and [SISL](https://marllib.readthedocs.io/en/latest/handbook/env.html#sisl) environments are incorporated into MARLlib.|
-| **Aug 2023** :tada:MARLlib has been accepted for publication in [JMLR](https://www.jmlr.org/).|
+| **Aug 2023** :tada:MARLlib has been accepted for publication in [JMLR](https://www.jmlr.org/mloss/).|
 | **Sept 2023** Latest [PettingZoo](https://marllib.readthedocs.io/en/latest/handbook/env.html#pettingzoo) with [Gymnasium](https://gymnasium.farama.org) are compatiable within MARLlib.|
+| **Nov 2023** We are currently in the process of creating a hands-on MARL book and aim to release the draft by the end of 2023.|
+
 
 **Multi-agent Reinforcement Learning Library ([MARLlib](https://arxiv.org/abs/2210.13708))** is ***a MARL library*** that utilizes [**Ray**](https://github.com/ray-project/ray) and one of its toolkits [**RLlib**](https://github.com/ray-project/ray/tree/master/rllib). It offers a comprehensive platform for developing, training, and testing MARL algorithms across various tasks and environments. 
 
@@ -79,7 +80,7 @@ Here we provide a table for the comparison of MARLlib and existing work.
 | [MAlib](https://github.com/sjtu-marl/malib) | [![GitHub stars](https://img.shields.io/github/stars/sjtu-marl/malib)](https://github.com/sjtu-marl/malib) | [![Documentation Status](https://readthedocs.org/projects/malib/badge/?version=latest)](https://malib.readthedocs.io/en/latest/?badge=latest) | ![GitHub opened issue](https://img.shields.io/github/issues/sjtu-marl/malib.svg) | ![GitHub commit-activity](https://img.shields.io/github/commit-activity/y/sjtu-marl/malib?label=commit) | ![GitHub last commit](https://img.shields.io/github/last-commit/sjtu-marl/malib?label=last%20update)  
 |    [EPyMARL](https://github.com/uoe-agents/epymarl)| [![GitHub stars](https://img.shields.io/github/stars/uoe-agents/epymarl)](https://github.com/uoe-agents/epymarl)        |           :x:            | ![GitHub opened issue](https://img.shields.io/github/issues/uoe-agents/epymarl.svg) | ![GitHub commit-activity](https://img.shields.io/github/commit-activity/y/uoe-agents/epymarl?label=commit) | ![GitHub last commit](https://img.shields.io/github/last-commit/uoe-agents/epymarl?label=last%20update)  
 |    [HARL](https://github.com/PKU-MARL/HARL)**\***| [![GitHub stars](https://img.shields.io/github/stars/PKU-MARL/HARL)](https://github.com/PKU-MARL/HARL)        |           :x:            | ![GitHub opened issue](https://img.shields.io/github/issues/PKU-MARL/HARL.svg) | ![GitHub commit-activity](https://img.shields.io/github/commit-activity/y/PKU-MARL/HARL?label=commit) | ![GitHub last commit](https://img.shields.io/github/last-commit/PKU-MARL/HARL?label=last%20update)  
-|    **[MARLlib](https://github.com/Replicable-MARL/MARLlib)** |  [![GitHub stars](https://img.shields.io/github/stars/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib)  |           [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/) | ![GitHub opened issue](https://img.shields.io/github/issues/Replicable-MARL/MARLlib.svg) | ![GitHub commit-activity](https://img.shields.io/github/commit-activity/m/Replicable-MARL/MARLlib?label=commit) | ![GitHub last commit](https://img.shields.io/github/last-commit/Replicable-MARL/MARLlib?label=last%20update)  
+|    **[MARLlib](https://github.com/Replicable-MARL/MARLlib)** |  [![GitHub stars](https://img.shields.io/github/stars/Replicable-MARL/MARLlib)](https://github.com/Replicable-MARL/MARLlib)  |           [![Documentation Status](https://readthedocs.org/projects/marllib/badge/?version=latest)](https://marllib.readthedocs.io/en/latest/) | ![GitHub opened issue](https://img.shields.io/github/issues/Replicable-MARL/MARLlib.svg) | ![GitHub commit-activity](https://img.shields.io/github/commit-activity/y/Replicable-MARL/MARLlib?label=commit) | ![GitHub last commit](https://img.shields.io/github/last-commit/Replicable-MARL/MARLlib?label=last%20update)  
 
 > **_\*_**  **HARL** is the latest MARL library that has been recently released:fire:. If cutting-edge MARL algorithms with state-of-the-art performance are your target, HARL is definitely worth [a look](https://github.com/PKU-MARL/HARL)!
 
@@ -397,10 +398,10 @@ If you use MARLlib in your research, please cite the [MARLlib paper](https://arx
 
 ```tex
 @article{hu2022marllib,
-      title={MARLlib: A Scalable Multi-agent Reinforcement Learning Library},
-      author={Hu, Siyi and Zhong, Yifan and Gao, Minquan and Wang, Weixun and Dong, Hao and Li, Zhihui and Liang, Xiaodan and Chang, Xiaojun and Yang, Yaodong},
-      journal={arXiv preprint arXiv:2210.13708},
-      year={2022}
+  author  = {Siyi Hu and Yifan Zhong and Minquan Gao and Weixun Wang and Hao Dong and Xiaodan Liang and Zhihui Li and Xiaojun Chang and Yaodong Yang},
+  title   = {MARLlib: A Scalable and Efficient Multi-agent Reinforcement Learning Library},
+  journal = {Journal of Machine Learning Research},
+  year    = {2023},
 }
 ```
 
