@@ -3,12 +3,16 @@
 """
 
 import argparse
+import atexit
 import os
+import signal
 import subprocess
 import time
+
 import redis
 
 IS_WINDOWS = os.name == "nt"
+EXIT_REGISTERED = False
 
 
 def kill_port(port):
@@ -35,9 +39,22 @@ def kill_pid(pid):
     else:
         find_kill = ["kill", "-9", pid]
 
-    print(find_kill)
     result = subprocess.run(find_kill, capture_output=True, text=True, shell=IS_WINDOWS)
     print("Killed process %s" % pid)
+
+
+def register_exit_handler():
+    """Only register exit handler if the Server is started by this script.
+
+    Returns:
+        bool -- True if exit handler is registered.
+    """
+    global EXIT_REGISTERED
+    atexit.register(kill_port, 2000)
+    signal.signal(signal.SIGTERM, lambda signum, frame: kill_port(2000))
+
+    EXIT_REGISTERED = True
+    return EXIT_REGISTERED
 
 
 def main(args):
@@ -46,16 +63,21 @@ def main(args):
             host=args.redis_host, port=args.redis_port, decode_responses=True
         )
         if conn.get("UE_START") == "1":
+            # Kill previous UE
             kill_port(2000)
-            time.sleep(1)
+
             # Start Ue
             if IS_WINDOWS:
                 proc = subprocess.Popen(args.ue_path, close_fds=True)
             else:
                 proc = subprocess.Popen(["bash", args.ue_path], close_fds=True)
-            time.sleep(3)
-            print("UE started")
+            time.sleep(args.wait_server)
             conn.set("UE_START", 0)
+
+            # Register exit handler
+            if not EXIT_REGISTERED:
+                register_exit_handler()
+
         time.sleep(1)
 
 
@@ -68,6 +90,7 @@ if __name__ == "__main__":
         type=str,
         default=os.environ.get("CARLA_SERVER", "~/software/CARLA_0.9.13/CarlaUE4.sh"),
     )
+    parser.add_argument("--wait_server", type=int, default=3)
     args = parser.parse_args()
 
     main(args)
