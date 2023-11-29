@@ -48,14 +48,14 @@ def main(args):
         if conn.get("UE_START") == "1":
             kill_port(2000)
             time.sleep(1)
-            conn.set("UE_START", 0)
-            print(time.time())
             # Start Ue
             if IS_WINDOWS:
                 proc = subprocess.Popen(args.ue_path, close_fds=True)
             else:
                 proc = subprocess.Popen(["bash", args.ue_path], close_fds=True)
+            time.sleep(3)
             print("UE started")
+            conn.set("UE_START", 0)
         time.sleep(1)
 
 

@@ -1,7 +1,7 @@
 """
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-11-17 22:56:50
+LastEditTime: 2023-11-29 10:10:58
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: /MARLlib/marllib/envs/base_env/macad.py
@@ -29,6 +29,7 @@ env_name_mapping = {
     "Recce.Dynamic": recce.DynamicAvoidance,
     "Recce.Foggy": recce.Foggy,
     "Tracking.Suspicious": tracking.Suspicious,
+    "Tracking.Slippery": tracking.Slippery,
     "Navigation": Navigation,
     "Town01": Town01Sim,
     "Town03": Town03Sim,
