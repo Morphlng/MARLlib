@@ -9,7 +9,7 @@ usage() {
 
 # Variables
 SCRIPT_DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
-BASE_DIR="${SCRIPT_DIR}/../marllib"
+BASE_DIR="${SCRIPT_DIR}/.."
 NOW=$(date +"%Y-%m-%d_%H:%M:%S")
 START_DOCKER=true
 CONDA_ENV_NAME="marllib"
@@ -60,6 +60,6 @@ run_in_new_screen() {
 }
 
 # Run the Python scripts in separate screens
-run_in_new_screen "carla_manager" "python ${BASE_DIR}/envs/base_env/carla_manager.py"
-run_in_new_screen "pylot_manager" "python ${BASE_DIR}/envs/base_env/pylot_manager.py"
-run_in_new_screen "main" "python ${BASE_DIR}/main.py> ~/${NOW}_train.log 2>&1"
+run_in_new_screen "carla_manager" "python ${BASE_DIR}/marllib/envs/base_env/carla_manager.py"
+run_in_new_screen "pylot_manager" "python ${BASE_DIR}/marllib/envs/base_env/pylot_manager.py"
+run_in_new_screen "eval" "python ${BASE_DIR}/examples/eval.py > ~/${NOW}_eval.log 2>&1"

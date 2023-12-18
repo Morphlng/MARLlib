@@ -1,18 +1,36 @@
+import argparse
+
 from marllib import marl
 
-# prepare env
-env = marl.make_env(environment_name="macad", map_name="Transport.Dynamic")
+if __name__ == "__main__":
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("-e", "--env_name", type=str, default="macad")
+    argparser.add_argument("-m", "--map_name", type=str, default="Town01")
+    argparser.add_argument("-a", "--algo", type=str, default="mappo")
+    argparser.add_argument("-c", "--core", type=str, default="gru")
+    args = argparser.parse_args()
 
-# initialize algorithm with appointed hyper-parameters
-mappo = marl.algos.mappo(hyperparam_source='macad')
+    # prepare env
+    env = marl.make_env(environment_name=args.env_name, map_name=args.map_name)
 
-# build agent model based on env + algorithms + user preference
-model = marl.build_model(env, mappo, {"core_arch": "gru"})
+    # initialize algorithm with appointed hyper-parameters
+    algo_cls = getattr(marl.algos, args.algo, None)
+    if algo_cls is None:
+        raise ValueError("Unsupported algorithm specified: ", args.algo)
+    else:
+        try:
+            algo = algo_cls(hyperparam_source=args.env_name)
+        except:
+            print("No finetuned hyper-parameters found, using default one...")
+            algo = algo_cls(hyperparam_source="common")
 
-# start training
-mappo.fit(env, model, stop={'timesteps_total': 90000000}, share_policy='group')
+    if args.algo.startswith("ma"):
+        policy = "group"
+    else:
+        policy = "individual"
 
-# This is a 1 iter fit, used as evaluation
-# mappo.render(env, model, share_policy='group', restore_path={
-#     'model_path': '/home/morphlng/ray_results/Town01_ckpt/Town01/checkpoint_000130/checkpoint-130',
-#     'params_path': '/home/morphlng/ray_results/Town01_ckpt/Town01/params.json'})
+    # build agent model based on env + algorithms + user preference
+    model = marl.build_model(env, algo, {"core_arch": args.core})
+
+    # start training
+    algo.fit(env, model, stop={"timesteps_total": 90000000}, share_policy=policy)

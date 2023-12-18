@@ -1,13 +1,17 @@
+from __future__ import annotations
+
+import argparse
 import importlib
 import inspect
 import json
 import logging
 import os
+from typing import Callable
 
 import ray
 from ray import tune
-from ray.rllib.models import ModelCatalog
 from ray.rllib.agents.trainer import Trainer
+from ray.rllib.models import ModelCatalog
 
 from marllib import marl
 
@@ -19,7 +23,15 @@ class dotdict(dict):
     __setattr__ = dict.__setitem__
 
 
-def find_key(dictionary, target_key):
+class Checkpoint:
+    def __init__(self, env_name: str, map_name: str, trainer: Trainer, pmap: Callable):
+        self.env_name = env_name
+        self.map_name = map_name
+        self.trainer = trainer
+        self.pmap = pmap
+
+
+def find_key(dictionary: dict, target_key: str):
     if target_key in dictionary:
         return dictionary[target_key]
 
@@ -32,7 +44,7 @@ def find_key(dictionary, target_key):
     return None
 
 
-def form_algo_dict():
+def form_algo_dict() -> dict[str, tuple[str, Trainer]]:
     trainers_dict = {}
 
     core_path = os.path.join(os.path.dirname(marl.__file__), "algos/core")
@@ -59,7 +71,8 @@ def form_algo_dict():
 
 def update_config(config: dict):
     # Extract config
-    map_name = find_key(config, "map_name")
+    env_name = config["env"].split("_")[0]
+    map_name = config["env"][len(env_name) + 1 :]
     model_name = find_key(config, "custom_model")
     model_arch_args = find_key(config, "model_arch_args")
     algo_name = find_key(config, "algorithm")
@@ -69,7 +82,7 @@ def update_config(config: dict):
     ######################
     ### environment info ###
     ######################
-    env = marl.make_env("macad", map_name)
+    env = marl.make_env(env_name, map_name)
     env_instance, env_info = env
     algorithm = dotdict({"name": algo_name, "algo_type": ALGO_DICT[algo_name][0]})
     model_instance, model_info = marl.build_model(env, algorithm, model_arch_args)
@@ -195,14 +208,14 @@ def update_config(config: dict):
     )
 
 
-def load_model(model_config: dict) -> "tuple[Trainer, function]":
+def load_model(model_config: dict) -> Checkpoint:
     """load model from given path
 
     Args:
         model_config (dict): model config dict, containing "algo", "params_path" and "model_path"
 
     Returns:
-        agent (Agent): agent object
+        ckpt (Checkpoint): The checkpoint loaded
     """
 
     try:
@@ -221,35 +234,51 @@ def load_model(model_config: dict) -> "tuple[Trainer, function]":
         )
 
     update_config(params)
-    trainer = ALGO_DICT[model_config.get("algo", find_key(params, "algorithm"))][1](
-        params
-    )
+    algo = model_config.get("algo", find_key(params, "algorithm"))
+    trainer = ALGO_DICT[algo][1](params)
     trainer.restore(model_config["model_path"])
 
     # This function (policy_map_fn) takes in actor_id (str), episode (int), returns the policy_id (str)
     # Most of the time, episode can be just 1
     pmap = find_key(trainer.config, "policy_mapping_fn")
 
-    return trainer, pmap
+    env_name = params["env"].split("_")[0]
+    map_name = params["env"][len(env_name) + 1 :]
+
+    return Checkpoint(env_name, map_name, trainer, pmap)
 
 
 ALGO_DICT = form_algo_dict()
 
 
 if __name__ == "__main__":
-    agent, pmap = load_model(
-        {
-            "model_path": "checkpoint/checkpoint_000425/checkpoint-425",
-            "params_path": "checkpoint/params.json",
-        }
+    default_model_path = os.path.join(
+        os.path.dirname(__file__), "best_model/checkpoint"
+    )
+    default_params_path = os.path.join(
+        os.path.dirname(__file__), "best_model/params.json"
     )
 
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--model_path", type=str, default=default_model_path)
+    argparser.add_argument("--params_path", type=str, default=default_params_path)
+    argparser.add_argument("--epoch", type=int, default=10)
+    args = argparser.parse_args()
+
+    ckpt = load_model(
+        {
+            "model_path": args.model_path,
+            "params_path": args.params_path,
+        }
+    )
+    agent, pmap = ckpt.trainer, ckpt.pmap
+
     # prepare env
-    env = marl.make_env(environment_name="macad", map_name="Town01")
+    env = marl.make_env(environment_name=ckpt.env_name, map_name=ckpt.map_name)
     env_instance, env_info = env
 
     # Inference
-    for _ in range(10):
+    for _ in range(args.epoch):
         obs = env_instance.reset()
         done = {"__all__": False}
         states = {
@@ -273,7 +302,6 @@ if __name__ == "__main__":
 
             obs, reward, done, info = env_instance.step(action_dict)
 
-        env_instance.close()
-
+    env_instance.close()
     ray.shutdown()
     print("Inference finished!")
