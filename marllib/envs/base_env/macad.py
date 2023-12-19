@@ -1,7 +1,7 @@
 """
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-11-29 10:10:58
+LastEditTime: 2023-12-19 19:49:14
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: /MARLlib/marllib/envs/base_env/macad.py
@@ -33,7 +33,7 @@ env_name_mapping = {
     "Strike.Passthrough": strike.PassThrough,
     "Strike.Static": strike.StaticAssult,
     "Strike.Dynamic": strike.DynamicAssult,
-    "Strike.Chase": strike.Chase,
+    "FireTest": FireTest,
     "Navigation": Navigation,
     "Town01": Town01Sim,
     "Town03": Town03Sim,
@@ -225,9 +225,13 @@ class RllibMacad(MultiAgentEnv):
     def _check_heterogeneity(self):
         """Check if the agents are heterogeneous"""
         spaces = {}
-        for agent_action in self.env.agent_actions.values():
+        for actor_id, agent_action in self.env.agent_actions.items():
             action_type = agent_action.action_type
-            if action_type not in spaces and "pseudo" not in action_type:
+            if (
+                actor_id not in ["ego", "hero"]
+                and action_type not in spaces
+                and "pseudo" not in action_type
+            ):
                 spaces[action_type] = agent_action.space_type
 
         return len(spaces) > 1
