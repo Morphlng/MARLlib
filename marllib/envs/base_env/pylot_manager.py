@@ -2,11 +2,20 @@
     This file is used along with macad_gym to manage the Pylot docker container
 """
 import argparse
+import logging
 import os
-import subprocess
 import signal
+import subprocess
 import time
+
 import redis
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 
 class PylotManager:
@@ -21,7 +30,7 @@ class PylotManager:
         self.ue_port = args.ue_port
         self.redis_host = args.redis_host
         self.redis_port = args.redis_port
-        self.goal_location = "-2.128490,317.256927,0.556630"
+        self.verbose = args.verbose
 
         self.conn = redis.Redis(
             host=self.redis_host, port=self.redis_port, decode_responses=True
@@ -64,12 +73,12 @@ class PylotManager:
         while True:
             try:
                 if self.conn.get("reset") == "yes":
-                    print("get reset yes")
+                    logger.info("get reset yes")
                     self.conn.set("reset", "no")
-                    print("set reset no")
+                    logger.info("set reset no")
 
                     # Kill previous pylot process
-                    print("kill pylot")
+                    logger.info("kill pylot")
                     if pylot_process is not None and pylot_process.poll() is None:
                         pylot_process.terminate()
 
@@ -80,21 +89,30 @@ class PylotManager:
                         stderr=subprocess.PIPE,
                     )
                     self.conn.set("START_EGO", "0")
-                    print("pylot killed")
+                    logger.info("pylot killed")
 
                     start_pylot_command = self.START_PYLOT_BASE_COMMAND.copy()
                     goal_loc = self.conn.get("pylot_end")
                     if goal_loc is not None:
-                        self.goal_location = goal_loc
-                        start_pylot_command[-1] += f" --goal_location={self.goal_location}"
+                        logger.info("goal_loc: %s" % goal_loc)
+                        start_pylot_command[-1] += f" --goal_location={goal_loc}"
+
+                    ego_speed = self.conn.get("ego_speed")
+                    if ego_speed is not None:
+                        logger.info("ego_speed: %s" % ego_speed)
+                        start_pylot_command[-1] += f" --target_speed={ego_speed}"
 
                     # Start new pylot process
                     time.sleep(1)
-                    print("start pylot")
+                    logger.info("start pylot")
                     pylot_process = subprocess.Popen(
-                        start_pylot_command, shell=False, preexec_fn=os.setsid
+                        start_pylot_command,
+                        shell=False,
+                        preexec_fn=os.setsid,
+                        stdout=None if self.verbose else subprocess.DEVNULL,
+                        stderr=None if self.verbose else subprocess.STDOUT,
                     )
-                    print("pylot started")
+                    logger.info("pylot started")
 
                 if pylot_process is not None:
                     ret_code = pylot_process.poll()
@@ -107,7 +125,7 @@ class PylotManager:
 
                 time.sleep(0.1)
             except KeyboardInterrupt:
-                print("KeyboardInterrupt received, terminating the script...")
+                logger.info("KeyboardInterrupt received, terminating the script...")
                 subprocess.run(
                     self.KILL_PYLOT,
                     shell=False,
@@ -131,6 +149,7 @@ if __name__ == "__main__":
     parser.add_argument("--ue_port", type=int, default=2000)
     parser.add_argument("--redis_host", type=str, default="127.0.0.1")
     parser.add_argument("--redis_port", type=int, default=6379)
+    parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
     pylot_manager = PylotManager(args)
