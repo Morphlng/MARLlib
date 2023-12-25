@@ -15,6 +15,8 @@ from ray.rllib.models import ModelCatalog
 
 from marllib import marl
 
+logger = logging.getLogger(__name__)
+
 
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
@@ -29,6 +31,29 @@ class Checkpoint:
         self.map_name = map_name
         self.trainer = trainer
         self.pmap = pmap
+
+
+class NullLogger:
+    """Logger for RLlib to disable logging"""
+
+    def __init__(self, config=None):
+        self.config = config
+        self.logdir = ""
+
+    def _init(self):
+        pass
+
+    def on_result(self, result):
+        pass
+
+    def update_config(self, config):
+        pass
+
+    def close(self):
+        pass
+
+    def flush(self):
+        pass
 
 
 def find_key(dictionary: dict, target_key: str):
@@ -222,7 +247,7 @@ def load_model(model_config: dict) -> Checkpoint:
         with open(model_config["params_path"], "r") as f:
             params = json.load(f)
     except Exception as e:
-        print("Error loading params: ", e)
+        logger.error("Error loading params: %s" % e)
         raise e
 
     if not ray.is_initialized():
@@ -235,7 +260,9 @@ def load_model(model_config: dict) -> Checkpoint:
 
     update_config(params)
     algo = model_config.get("algo", find_key(params, "algorithm"))
-    trainer = ALGO_DICT[algo][1](params)
+    trainer = ALGO_DICT[algo][1](
+        params, logger_creator=lambda config: NullLogger(config)
+    )
     trainer.restore(model_config["model_path"])
 
     # This function (policy_map_fn) takes in actor_id (str), episode (int), returns the policy_id (str)
@@ -262,7 +289,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--model_path", type=str, default=default_model_path)
     argparser.add_argument("--params_path", type=str, default=default_params_path)
-    argparser.add_argument("--epoch", type=int, default=10)
+    argparser.add_argument("--epoch", type=int, default=100)
     args = argparser.parse_args()
 
     ckpt = load_model(
@@ -297,11 +324,11 @@ if __name__ == "__main__":
                     obs[agent_id],
                     states[agent_id],
                     policy_id=pmap(agent_id, 1),
-                    explore=False,
+                    explore=True,
                 )
 
             obs, reward, done, info = env_instance.step(action_dict)
 
     env_instance.close()
     ray.shutdown()
-    print("Inference finished!")
+    logger.info("Inference finished!")
