@@ -226,6 +226,9 @@ class RllibMacad(MultiAgentEnv):
         """Check if the agents are heterogeneous"""
         spaces = {}
         for actor_id, agent_action in self.env.agent_actions.items():
+            if actor_id in self.env._background_actor_ids:
+                continue
+
             action_type = agent_action.action_type
             if (
                 actor_id not in ["ego", "hero"]
