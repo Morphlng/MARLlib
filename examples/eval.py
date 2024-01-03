@@ -290,6 +290,8 @@ if __name__ == "__main__":
     argparser.add_argument("--model_path", type=str, default=default_model_path)
     argparser.add_argument("--params_path", type=str, default=default_params_path)
     argparser.add_argument("--epoch", type=int, default=100)
+    argparser.add_argument("--collect_data", action="store_true")
+    argparser.add_argument("--record", action="store_true")
     args = argparser.parse_args()
 
     ckpt = load_model(
@@ -303,6 +305,11 @@ if __name__ == "__main__":
     # prepare env
     env = marl.make_env(environment_name=ckpt.env_name, map_name=ckpt.map_name)
     env_instance, env_info = env
+    if args.collect_data and ckpt.env_name == "macad":
+        from macad_gym.misc.experiment import DataCollectWrapper
+        env_instance.env = DataCollectWrapper(env_instance.env)
+    if args.record and ckpt.env_name == "macad":
+        env_instance.env.env_config["record"] = True
 
     # Inference
     for _ in range(args.epoch):
