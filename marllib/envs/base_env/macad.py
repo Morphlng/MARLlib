@@ -1,7 +1,7 @@
 """
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2023-12-19 19:49:14
+LastEditTime: 2024-01-04 17:19:28
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
 FilePath: /MARLlib/marllib/envs/base_env/macad.py
@@ -82,7 +82,7 @@ class RllibMacad(MultiAgentEnv):
         self.agents = [
             actor_id
             for actor_id in self.env_config["actors"]
-            if actor_id not in self.env._background_actor_ids and actor_id != "ego"
+            if actor_id not in self.env.background_actor_ids and actor_id != "ego"
         ]
         self.num_agents = len(self.agents)
 
@@ -226,7 +226,7 @@ class RllibMacad(MultiAgentEnv):
         """Check if the agents are heterogeneous"""
         spaces = {}
         for actor_id, agent_action in self.env.agent_actions.items():
-            if actor_id in self.env._background_actor_ids:
+            if actor_id in self.env.background_actor_ids:
                 continue
 
             action_type = agent_action.action_type
