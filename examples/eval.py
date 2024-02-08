@@ -305,10 +305,10 @@ if __name__ == "__main__":
     # prepare env
     env = marl.make_env(environment_name=ckpt.env_name, map_name=ckpt.map_name)
     env_instance, env_info = env
-    if args.collect_data and ckpt.env_name == "macad":
-        from macad_gym.misc.experiment import DataCollectWrapper
+    if args.collect_data and ckpt.env_name in ["macad", "macarla"]:
+        from macarla_gym.misc.experiment import DataCollectWrapper
         env_instance.env = DataCollectWrapper(env_instance.env)
-    if args.record and ckpt.env_name == "macad":
+    if args.record and ckpt.env_name in ["macad", "macarla"]:
         env_instance.env.env_config["record"] = True
 
     # Inference

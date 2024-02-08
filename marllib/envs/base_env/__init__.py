@@ -24,11 +24,11 @@ ENV_REGISTRY = {}
 
 try:
     from marllib.envs.base_env.gymnasium_mamujoco import RLlibGymnasiumRoboticsMAMujoco
+
     ENV_REGISTRY["gymnasium_mamujoco"] = RLlibGymnasiumRoboticsMAMujoco
 
 except Exception as e:
     ENV_REGISTRY["gymnasium_mamujoco"] = str(e)
-
 
 try:
     from marllib.envs.base_env.mpe import RLlibMPE
@@ -36,7 +36,6 @@ try:
     ENV_REGISTRY["mpe"] = RLlibMPE
 except Exception as e:
     ENV_REGISTRY["mpe"] = str(e)
-
 
 try:
     from marllib.envs.base_env.gymnasium_mpe import RLlibMPE_Gymnasium
@@ -51,9 +50,6 @@ try:
     ENV_REGISTRY["mamujoco"] = RLlibMAMujoco
 except Exception as e:
     ENV_REGISTRY["mamujoco"] = str(e)
-
-
-
 
 try:
     from marllib.envs.base_env.smac import RLlibSMAC
@@ -112,13 +108,17 @@ except Exception as e:
     ENV_REGISTRY["metadrive"] = str(e)
 
 try:
-    from marllib.envs.base_env.macad import RllibMacad
-    ENV_REGISTRY["macad"] = RllibMacad
+    from marllib.envs.base_env.macarla import RLlibMACarla
+
+    ENV_REGISTRY["macarla"] = RLlibMACarla
+    ENV_REGISTRY["macad"] = RLlibMACarla
 except Exception as e:
+    ENV_REGISTRY["macarla"] = str(e)
     ENV_REGISTRY["macad"] = str(e)
-    
+
 try:
     from marllib.envs.base_env.mate import RLlibMATE
+
     ENV_REGISTRY["mate"] = RLlibMATE
 except Exception as e:
     ENV_REGISTRY["mate"] = str(e)

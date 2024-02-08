@@ -1,10 +1,10 @@
 """
 Author: Morphlng
 Date: 2023-08-09 19:34:29
-LastEditTime: 2024-01-04 17:19:28
+LastEditTime: 2024-02-08 22:08:38
 LastEditors: Morphlng
 Description: Wrapper for macad env to restruct the observation and action space
-FilePath: /MARLlib/marllib/envs/base_env/macad.py
+FilePath: /MARLlib/marllib/envs/base_env/macarla.py
 """
 
 import logging
@@ -12,9 +12,9 @@ from copy import deepcopy
 
 import numpy as np
 from gym.spaces import Box, Dict
-from macad_gym import ENV_ASSETS
-from macad_gym.envs import *
-from macad_gym.misc.experiment import ActionConcatWrapper, ActionPaddingWrapper
+from macarla_gym import ENV_ASSETS
+from macarla_gym.envs import *
+from macarla_gym.misc.experiment import ActionConcatWrapper, ActionPaddingWrapper
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ policy_mapping_dict = {
 }
 
 
-class RllibMacad(MultiAgentEnv):
+class RLlibMACarla(MultiAgentEnv):
     def __init__(self, env_config: dict):
         config = deepcopy(env_config)
         self.map_name = config.get("map_name", "default")
